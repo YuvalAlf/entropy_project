@@ -15,6 +15,7 @@ from sklearn.datasets import fetch_20newsgroups
 
 from utils.core_utils import fst, snd
 from utils.functional_utils import map_list
+from utils.math_utils import calc_entropy
 
 
 @dataclass
@@ -56,10 +57,6 @@ def calc_frequency(current_tokens: List[str], num_tokens: int, token_to_location
         if token in token_to_location:
             counter[token] = times
     return counter / counter.sum()
-
-
-def calc_entropy(probability_vector: np.ndarray) -> float:
-    return sum(-p*math.log(p) for p in probability_vector if p > 0)
 
 
 def average_probabilities(list1: List[float], list2: List[float]) -> List[float]:
