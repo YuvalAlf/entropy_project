@@ -3,15 +3,17 @@ from __future__ import annotations
 from itertools import chain
 from typing import Callable, Iterable, Set, List
 
+import matplotlib.pyplot as plt
+
 from utils.core_utils import fst, snd
 from utils.functional_utils import map_list
-from utils.math_utils import calc_entropy
+from utils.math_utils import calc_entropy, equalize_vector
 
 
 class EntropyVec(List[float]):
     @staticmethod
     def gen_rand(length: int, generator: Callable[[], float]) -> EntropyVec:
-        return EntropyVec([generator() for _ in range(length)]).normalize()
+        return EntropyVec([abs(generator()) for _ in range(length)]).normalize()
 
     def normalize(self) -> EntropyVec:
         sum_value = sum(self)
@@ -37,9 +39,10 @@ class EntropyVec(List[float]):
         return other_known_vector, untransmitted_coordinates, other_min_value
 
     def upper_bound(self, other_vec: EntropyVec, top_n: int) -> float:
-        average_known_vector, unknown_coordinates, _ = self.prepare_alg(other_vec, top_n)
-
-        return 1
+        other_known_vector, unknown_coordinates, _ = self.prepare_alg(other_vec, top_n)
+        total_remaining = 1 - sum(other_known_vector)
+        equalize_vector(self, other_known_vector, unknown_coordinates, total_remaining)
+        return EntropyVec(other_known_vector).average_with(self).entropy()
 
     def lower_bound(self, other_vec: EntropyVec, top_n: int) -> float:
         other_known_vector, unknown_coordinates, other_min_value = self.prepare_alg(other_vec, top_n)
@@ -52,3 +55,8 @@ class EntropyVec(List[float]):
                 other_known_vector[coordinate] = other_min_value
                 total_remaining -= other_min_value
         return EntropyVec(other_known_vector).average_with(self).entropy()
+
+    def show(self, name: str) -> None:
+        plt.plot(range(len(self)), sorted(self, reverse=True), color='red')
+        plt.savefig(f'{name}.png', dpi=300, bbox_inches='tight')
+        plt.cla()
