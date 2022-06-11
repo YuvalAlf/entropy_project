@@ -26,7 +26,7 @@ ENTROPY_2_ENTRY = 'Vec2 Entropy'
 VEC_LENGTH_ENTRY = 'Vector Length'
 
 
-def generators(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
+def synthethic_distributions(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
     np.random.seed(200)
     yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size)).normalize()
     yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size)).normalize()
@@ -46,29 +46,22 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     entropy_vec1.show_histogram(os.path.join(save_dir, f'{distribution1_name}_1.png'))
     entropy_vec2.show_histogram(os.path.join(save_dir, f'{distribution2_name}_2.png'))
 
-    average_entropy = entropy_vec1.average_with(entropy_vec2).entropy()
-    entropy1 = entropy_vec1.entropy()
-    entropy2 = entropy_vec2.entropy()
-
     df_aggragator = DataFrameAggragator()
     for top_n in range(vec_length):
-        lower_bound_vec1 = entropy_vec1.lower_bound(entropy_vec2, top_n)
-        upper_bound_vec1 = entropy_vec1.upper_bound(entropy_vec2, top_n)
-        lower_bound_vec2 = entropy_vec2.lower_bound(entropy_vec1, top_n)
-        upper_bound_vec2 = entropy_vec2.upper_bound(entropy_vec1, top_n)
         df_aggragator.append_row(**{TOP_N_ENTRY: top_n,
-                                    LOWER_BOUND_VEC_1_ENTRY: lower_bound_vec1,
-                                    UPPER_BOUND_VEC_1_ENTRY: upper_bound_vec1,
-                                    LOWER_BOUND_VEC_2_ENTRY: lower_bound_vec2,
-                                    UPPER_BOUND_VEC_2_ENTRY: upper_bound_vec2})
+                                    LOWER_BOUND_VEC_1_ENTRY: entropy_vec1.lower_bound(entropy_vec2, top_n),
+                                    UPPER_BOUND_VEC_1_ENTRY: entropy_vec1.upper_bound(entropy_vec2, top_n),
+                                    LOWER_BOUND_VEC_2_ENTRY: entropy_vec2.lower_bound(entropy_vec1, top_n),
+                                    UPPER_BOUND_VEC_2_ENTRY: entropy_vec2.upper_bound(entropy_vec1, top_n)})
     df = df_aggragator.to_data_frame()
     max_entropy_value = log(vec_length)
     x_lims = (min(df[TOP_N_ENTRY]), max(df[TOP_N_ENTRY]))
+
     plt.figure(figsize=(8, 8))
     plot_horizontal(x_lims, max_entropy_value, color='black', linestyle='dashed', alpha=0.8, label='Max Entropy Value')
-    plot_horizontal(x_lims, average_entropy, color='gray', linestyle='dashdot', alpha=0.8, label='Average Vector Entropy')
-    plot_horizontal(x_lims, entropy1, color='deeppink', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution1_name}')
-    plot_horizontal(x_lims, entropy2, color='teal', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution2_name}')
+    plot_horizontal(x_lims, entropy_vec1.average_with(entropy_vec2).entropy(), color='gray', linestyle='dashdot', alpha=0.8, label='Average Vector Entropy')
+    plot_horizontal(x_lims, entropy_vec1.entropy(), color='deeppink', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution1_name}')
+    plot_horizontal(x_lims, entropy_vec2.entropy(), color='teal', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution2_name}')
 
     plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='blue', alpha=0.8, label=f'Lower Bound: {distribution1_name}')
     plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='red', alpha=0.8, label=f'Lower Bound: {distribution2_name}')
@@ -85,12 +78,12 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
 
 
 def main() -> None:
-    vec_length = 500
+    vector_length = 500
     result_path = join_create_dir('.', 'results')
-    print(f'{TOP_N_ENTRY},{DISTRIBUTION_1_ENTRY},{DISTRIBUTION_2_ENTRY},{AVERAGE_ENTROPY_ENTRY},{VEC_LENGTH_ENTRY},'
-          f'{LOWER_BOUND_VEC_1_ENTRY},{UPPER_BOUND_VEC_1_ENTRY},{LOWER_BOUND_VEC_2_ENTRY},{UPPER_BOUND_VEC_2_ENTRY},'
-          f'{ENTROPY_1_ENTRY},{ENTROPY_2_ENTRY}')
-    for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in combinations_with_repetitions(generators(vec_length)):
+
+    distributions = combinations_with_repetitions(synthethic_distributions(vector_length))
+
+    for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in distributions:
         run_entropy_simulation(distribution1_name, entropy_vec1(), distribution2_name, entropy_vec2(), result_path)
 
 
