@@ -28,23 +28,23 @@ VEC_LENGTH_ENTRY = 'Vector Length'
 
 def generators(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
     np.random.seed(200)
-    yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size))
-    yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size))
-    yield 'Uniform (0-0.1)', lambda: EntropyVec(np.random.uniform(0, 0.1, size=vector_size))
-    yield 'Uniform (1-2)', lambda: EntropyVec(np.random.uniform(1, 2, size=vector_size))
-    yield 'Exponential scale=0.02', lambda: EntropyVec(np.random.exponential(scale=0.02, size=vector_size))
-    yield 'Exponential scale=0.01', lambda: EntropyVec(np.random.exponential(scale=0.01, size=vector_size))
+    yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size)).normalize()
+    yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size)).normalize()
+    yield 'Uniform (0-0.1)', lambda: EntropyVec(np.random.uniform(0, 0.1, size=vector_size)).normalize()
+    yield 'Uniform (1-2)', lambda: EntropyVec(np.random.uniform(1, 2, size=vector_size)).normalize()
+    yield 'Exponential scale=0.02', lambda: EntropyVec(np.random.exponential(scale=0.02, size=vector_size)).normalize()
+    yield 'Exponential scale=0.01', lambda: EntropyVec(np.random.exponential(scale=0.01, size=vector_size)).normalize()
 
 
-def run_entropy_simulation(generator1_name: str, entropy_vec1: EntropyVec, generator2_name: str,
+def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, distribution2_name: str,
                            entropy_vec2: EntropyVec, results_dir_path: str) -> None:
-    assert len(entropy_vec1)==len(entropy_vec2)
+    assert len(entropy_vec1) == len(entropy_vec2)
     vec_length = len(entropy_vec1)
-    print(f'Running {generator1_name} and {generator2_name}, Vector Length = {vec_length}...')
-    save_dir = join_create_dir(results_dir_path, f'{generator1_name}_{generator2_name}')
+    print(f'Running {distribution1_name} and {distribution2_name}, Vector Length = {vec_length}...')
+    save_dir = join_create_dir(results_dir_path, f'{distribution1_name}_{distribution2_name}')
 
-    entropy_vec1.show_histogram(os.path.join(save_dir, f'{generator1_name}_1.png'))
-    entropy_vec2.show_histogram(os.path.join(save_dir, f'{generator2_name}_2.png'))
+    entropy_vec1.show_histogram(os.path.join(save_dir, f'{distribution1_name}_1.png'))
+    entropy_vec2.show_histogram(os.path.join(save_dir, f'{distribution2_name}_2.png'))
 
     average_entropy = entropy_vec1.average_with(entropy_vec2).entropy()
     entropy1 = entropy_vec1.entropy()
@@ -67,13 +67,13 @@ def run_entropy_simulation(generator1_name: str, entropy_vec1: EntropyVec, gener
     plt.figure(figsize=(8, 8))
     plot_horizontal(x_lims, max_entropy_value, color='black', linestyle='dashed', alpha=0.8, label='Max Entropy Value')
     plot_horizontal(x_lims, average_entropy, color='gray', linestyle='dashdot', alpha=0.8, label='Average Vector Entropy')
-    plot_horizontal(x_lims, entropy1, color='deeppink', linestyle='dotted', alpha=0.8, label=f'Entropy of {generator1_name}')
-    plot_horizontal(x_lims, entropy2, color='teal', linestyle='dotted', alpha=0.8, label=f'Entropy of {generator2_name}')
+    plot_horizontal(x_lims, entropy1, color='deeppink', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution1_name}')
+    plot_horizontal(x_lims, entropy2, color='teal', linestyle='dotted', alpha=0.8, label=f'Entropy of {distribution2_name}')
 
-    plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='blue', alpha=0.8, label=f'Lower Bound: {generator1_name}')
-    plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='red', alpha=0.8, label=f'Lower Bound: {generator2_name}')
-    plt.plot(df[TOP_N_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='navy', alpha=0.8, label=f'Upper Bound: {generator1_name}')
-    plt.plot(df[TOP_N_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='firebrick', alpha=0.8, label=f'Upper Bound: {generator2_name}')
+    plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='blue', alpha=0.8, label=f'Lower Bound: {distribution1_name}')
+    plt.plot(df[TOP_N_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='red', alpha=0.8, label=f'Lower Bound: {distribution2_name}')
+    plt.plot(df[TOP_N_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='navy', alpha=0.8, label=f'Upper Bound: {distribution1_name}')
+    plt.plot(df[TOP_N_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='firebrick', alpha=0.8, label=f'Upper Bound: {distribution2_name}')
 
     plt.xlim((0, None))
     plt.ylim((None, math.ceil(max_entropy_value)))
@@ -90,8 +90,8 @@ def main() -> None:
     print(f'{TOP_N_ENTRY},{DISTRIBUTION_1_ENTRY},{DISTRIBUTION_2_ENTRY},{AVERAGE_ENTROPY_ENTRY},{VEC_LENGTH_ENTRY},'
           f'{LOWER_BOUND_VEC_1_ENTRY},{UPPER_BOUND_VEC_1_ENTRY},{LOWER_BOUND_VEC_2_ENTRY},{UPPER_BOUND_VEC_2_ENTRY},'
           f'{ENTROPY_1_ENTRY},{ENTROPY_2_ENTRY}')
-    for (generator1_name, entropy_vec1), (generator2_name, entropy_vec2) in combinations_with_repetitions(generators(vec_length)):
-        run_entropy_simulation(generator1_name, entropy_vec1(), generator2_name, entropy_vec2(), result_path)
+    for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in combinations_with_repetitions(generators(vec_length)):
+        run_entropy_simulation(distribution1_name, entropy_vec1(), distribution2_name, entropy_vec2(), result_path)
 
 
 if __name__ == '__main__':
