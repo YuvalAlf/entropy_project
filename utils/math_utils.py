@@ -6,16 +6,17 @@ from utils.core_utils import snd
 from utils.functional_utils import windowed_to_start
 
 
-def entropy(probability: float):
+def entropy_value(probability: float):
     if probability <= 0:
         return 0
     return -probability * math.log(probability)
 
 
 def calc_entropy(vector: Sequence[float]) -> float:
-    return sum(map(entropy, vector))
+    return sum(map(entropy_value, vector))
 
 
+# TODO: refactor the function bellow
 def equalize_vector(current_vector: List[float], other_known_vector: List[float], unknown_coordinates: Set[int],
                     total_remaining: float) -> None:
     values_and_locations: List[(int, float)] = sorted(((coord, current_vector[coord]) for coord in unknown_coordinates),

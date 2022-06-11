@@ -56,7 +56,11 @@ class EntropyVec(List[float]):
                 total_remaining -= other_min_value
         return EntropyVec(other_known_vector).average_with(self).entropy()
 
-    def show(self, name: str) -> None:
+    def show_histogram(self, path: str) -> None:
         plt.plot(range(len(self)), sorted(self, reverse=True), color='red')
-        plt.savefig(f'{name}.png', dpi=300, bbox_inches='tight')
-        plt.cla()
+        plt.title('Probability Values Histogram')
+        plt.ylabel('Probability Value')
+        plt.xlabel('Coordinates (Sorted)')
+        plt.ylim(0, None)
+        plt.savefig(path, dpi=300, bbox_inches='tight')
+        plt.close('all')

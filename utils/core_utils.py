@@ -1,11 +1,9 @@
-from typing import Tuple, Any
-
-from utils.typing_utils import T
+from typing import Any, Sequence
 
 
-def fst(arr: Tuple[T, ...]) -> T:
+def fst(arr: Sequence[Any]) -> Any:
     return arr[0]
 
 
-def snd(arr: Any) -> T:
+def snd(arr: Sequence[Any]) -> Any:
     return arr[1]
