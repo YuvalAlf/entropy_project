@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 from entropy.entropy_vec import EntropyVec
 from utils.combinatorics_utils import combinations_with_repetitions
 from utils.data_frame_aggragator import DataFrameAggragator
+from utils.functional_utils import map_snd, apply_func
 from utils.os_utils import join_create_dir
 from utils.plotting_utils import plot_horizontal
 
@@ -26,7 +27,7 @@ ENTROPY_2_ENTRY = 'Vec2 Entropy'
 VEC_LENGTH_ENTRY = 'Vector Length'
 
 
-def synthethic_distributions(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
+def synthetic_distributions(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
     np.random.seed(200)
     yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size)).normalize()
     yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size)).normalize()
@@ -77,15 +78,18 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def main() -> None:
-    vector_length = 500
+def main_entropy_simulation(distributions: Iterable[Tuple[Tuple[str, EntropyVec], Tuple[str, EntropyVec]]]) -> None:
     result_path = join_create_dir('.', 'results')
 
-    distributions = combinations_with_repetitions(synthethic_distributions(vector_length))
-
     for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in distributions:
-        run_entropy_simulation(distribution1_name, entropy_vec1(), distribution2_name, entropy_vec2(), result_path)
+        run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path)
+
+
+def main_synthetic_distributions(vector_length: int) -> None:
+    distributions = combinations_with_repetitions(synthetic_distributions(vector_length))
+    applied_distributions = (((name1, dist1()), (name2, dist2())) for (name1, dist1), (name2, dist2) in distributions)
+    main_entropy_simulation(applied_distributions)
 
 
 if __name__ == '__main__':
-    main()
+    main_synthetic_distributions(vector_length=200)
