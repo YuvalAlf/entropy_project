@@ -49,7 +49,9 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     entropy_vec2.show_histogram(os.path.join(save_dir, f'{distribution2_name}_2.png'))
 
     df_aggragator = DataFrameAggragator()
-    for top_n in range(vec_length):
+    num_samples = 100
+    step = max(1, int(vec_length / num_samples / 2))
+    for top_n in range(0, vec_length // 2, step):
         df_aggragator.append_row(**{TOP_N_ENTRY: top_n,
                                     LOWER_BOUND_VEC_1_ENTRY: entropy_vec1.lower_bound(entropy_vec2, top_n),
                                     UPPER_BOUND_VEC_1_ENTRY: entropy_vec1.upper_bound(entropy_vec2, top_n),
@@ -57,7 +59,7 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
                                     UPPER_BOUND_VEC_2_ENTRY: entropy_vec2.upper_bound(entropy_vec1, top_n)})
     df = df_aggragator.to_data_frame()
     max_entropy_value = log(vec_length)
-    x_lims = (min(df[TOP_N_ENTRY]), max(df[TOP_N_ENTRY]))
+    x_lims = (0, vec_length)
 
     plt.figure(figsize=(8, 8))
     plot_horizontal(x_lims, max_entropy_value, color='black', linestyle='dashed', alpha=0.8, label='Max Entropy Value')
@@ -103,5 +105,5 @@ def main_newsgroups_distributions(num_newgroups_to_fetch: int, num_tokens: int) 
 
 
 if __name__ == '__main__':
-    main_newsgroups_distributions(num_newgroups_to_fetch=100, num_tokens=1000)
-    main_synthetic_distributions(vector_length=1000)
+    main_synthetic_distributions(vector_length=10000)
+    main_newsgroups_distributions(num_newgroups_to_fetch=100, num_tokens=10000)

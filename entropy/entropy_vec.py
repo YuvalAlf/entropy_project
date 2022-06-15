@@ -4,9 +4,11 @@ from itertools import chain
 from typing import Callable, Iterable, Set, List
 
 import matplotlib.pyplot as plt
+from more_itertools import pairwise
 
 from utils.core_utils import fst, snd
 from utils.functional_utils import map_list, windowed_to_start
+from utils.itertools_utils import enumerate1
 from utils.math_utils import calc_entropy
 
 
@@ -37,25 +39,49 @@ class EntropyVec(List[float]):
         total_remaining = 1 - sum(other_known_vector)
         return other_known_vector, untransmitted_coordinates, other_min_value, total_remaining
 
+    # def upper_bound2(self, other_vec: EntropyVec, top_n: int) -> float:
+    #     other_known_vector, unknown_coordinates, _, total_remaining = self.prepare_alg(other_vec, top_n)
+    #     values_and_locations: List[(int, float)] = sorted(((coord, self[coord]) for coord in unknown_coordinates), key=snd)
+    #     values_and_locations.append((-1, float('inf')))
+    #     finish_loop = False
+    #
+    #     for ((*rest_min_values, (min_index, min_value)), (_, second_min_value)) in windowed_to_start(values_and_locations):
+    #         amount_to_add = second_min_value - min_value
+    #         sum_amount_to_add = amount_to_add * (len(rest_min_values) + 1)
+    #         if sum_amount_to_add > total_remaining:
+    #             amount_to_add = total_remaining / (len(rest_min_values) + 1)
+    #             finish_loop = True
+    #         total_remaining -= sum_amount_to_add
+    #
+    #         for index, value in chain(rest_min_values, [(min_index, min_value)]):
+    #             other_known_vector[index] += amount_to_add
+    #         if finish_loop:
+    #             break
+    #     return EntropyVec(other_known_vector).average_with(self).entropy()
+
     def upper_bound(self, other_vec: EntropyVec, top_n: int) -> float:
         other_known_vector, unknown_coordinates, _, total_remaining = self.prepare_alg(other_vec, top_n)
-        values_and_locations: List[(int, float)] = sorted(((coord, self[coord]) for coord in unknown_coordinates), key=snd)
-        values_and_locations.append((-1, float('inf')))
-        finish_loop = False
+        average_vector = self.average_with(other_known_vector)
+        if len(unknown_coordinates) == 0:
+            return average_vector.entropy()
+        average_vector_sorted_values = sorted(map(average_vector.__getitem__, unknown_coordinates)) + [float('inf')]
+        addition_remaining_to_average_vec = total_remaining / 2
 
-        for ((*rest_min_values, (min_index, min_value)), (_, second_min_value)) in windowed_to_start(values_and_locations):
-            amount_to_add = second_min_value - min_value
-            sum_amount_to_add = amount_to_add * (len(rest_min_values) + 1)
-            if sum_amount_to_add > total_remaining:
-                amount_to_add = total_remaining / (len(rest_min_values) + 1)
-                finish_loop = True
-            total_remaining -= sum_amount_to_add
+        for width, (prev_value, next_value) in enumerate1(pairwise(average_vector_sorted_values)):
+            height = next_value - prev_value
+            addition_value = width * height
+            if addition_value < addition_remaining_to_average_vec:
+                addition_remaining_to_average_vec -= addition_value
+            else:
+                height = addition_remaining_to_average_vec / width
+                threshold_value = prev_value + height
+                for coord in unknown_coordinates:
+                    if average_vector[coord] < threshold_value:
+                        average_vector[coord] = threshold_value
+                assert abs(sum(average_vector) - 1) < 0.000001
+                return average_vector.entropy()
 
-            for index, value in chain(rest_min_values, [(min_index, min_value)]):
-                other_known_vector[index] += amount_to_add
-            if finish_loop:
-                break
-        return EntropyVec(other_known_vector).average_with(self).entropy()
+        raise ValueError("Some unexpected error occurred. shouldn't reach here")
 
     def lower_bound(self, other_vec: EntropyVec, top_n: int) -> float:
         other_known_vector, unknown_coordinates, other_min_value, total_remaining = self.prepare_alg(other_vec, top_n)
