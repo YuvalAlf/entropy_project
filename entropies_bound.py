@@ -8,10 +8,11 @@ from typing import Iterable, Tuple, Callable
 from matplotlib import pyplot as plt
 
 from entropy.entropy_vec import EntropyVec
-from utils.combinatorics_utils import combinations_with_repetitions
+from newsgroups_entropy import NewsgroupThemeTokens
+from utils.combinatorics_utils import combinations_with_repetitions, combinations_without_repetitions
 from utils.data_frame_aggragator import DataFrameAggragator
 from utils.functional_utils import map_snd, apply_func
-from utils.os_utils import join_create_dir
+from utils.os_utils import join_create_dir, encode_json
 from utils.plotting_utils import plot_horizontal
 
 TOP_N_ENTRY = 'Top-N'
@@ -78,8 +79,8 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def main_entropy_simulation(distributions: Iterable[Tuple[Tuple[str, EntropyVec], Tuple[str, EntropyVec]]]) -> None:
-    result_path = join_create_dir('.', 'results')
+def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[Tuple[str, EntropyVec], Tuple[str, EntropyVec]]]) -> None:
+    result_path = join_create_dir('results', dir_name)
 
     for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in distributions:
         run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path)
@@ -88,8 +89,19 @@ def main_entropy_simulation(distributions: Iterable[Tuple[Tuple[str, EntropyVec]
 def main_synthetic_distributions(vector_length: int) -> None:
     distributions = combinations_with_repetitions(synthetic_distributions(vector_length))
     applied_distributions = (((name1, dist1()), (name2, dist2())) for (name1, dist1), (name2, dist2) in distributions)
-    main_entropy_simulation(applied_distributions)
+    main_entropy_simulation('synthetic', applied_distributions)
+
+
+def main_newsgroups_distributions(num_newgroups_to_fetch: int, num_tokens: int) -> None:
+    newsgroups = NewsgroupThemeTokens.fetch(num_newgroups_to_fetch)
+    unique_tokens, token_to_location = NewsgroupThemeTokens.unique_tokens(newsgroups, num_tokens)
+    themes_and_entropy_vecs = [(newsgroup.theme, EntropyVec(newsgroup.probability_vector(unique_tokens)))
+                            for newsgroup in newsgroups]
+    dir_path = join_create_dir('results', 'newsgroups')
+    encode_json(unique_tokens, os.path.join(dir_path, 'top_tokens.json'))
+    main_entropy_simulation('newsgroups', combinations_without_repetitions(themes_and_entropy_vecs))
 
 
 if __name__ == '__main__':
-    main_synthetic_distributions(vector_length=200)
+    main_newsgroups_distributions(num_newgroups_to_fetch=100, num_tokens=1000)
+    main_synthetic_distributions(vector_length=1000)

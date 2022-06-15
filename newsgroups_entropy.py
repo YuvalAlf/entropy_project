@@ -4,7 +4,8 @@ import math
 import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import List, Dict
+from itertools import islice
+from typing import List, Dict, DefaultDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,16 +22,34 @@ from utils.math_utils import calc_entropy
 @dataclass
 class NewsgroupThemeTokens:
     theme: str
-    token_to_count: Dict[str, int]
+    token_to_count: DefaultDict[str, int]
 
     @staticmethod
-    def unique_tokens(newsgroups: NewsgroupThemeTokens) -> (List[str], Dict[str, int]):
-        unique_tokens = sorted({token for newsgroup in newsgroups for token in newsgroup.token_to_count.keys()})
-        token_to_location = map_list(fst, enumerate(unique_tokens))
-        return unique_tokens, token_to_location
+    def unique_tokens(newsgroups: List[NewsgroupThemeTokens], num_tokens: int) -> (List[str], Dict[str, int]):
+        unique_tokens = {token for newsgroup in newsgroups for token in newsgroup.token_to_count.keys()}
+        top_unique_tokens = sorted(unique_tokens, key=lambda t: sum(n.token_to_count[t] for n in newsgroups), reverse=True)[:num_tokens]
+        token_to_location = map_list(fst, enumerate(top_unique_tokens))
+        return top_unique_tokens, token_to_location
 
     @staticmethod
     def fetch(num_newsgroups: int) -> List[NewsgroupThemeTokens]:
+        newsgroups_count = defaultdict(int)
+        newsgroups = fetch_20newsgroups(subset='train')
+        target_to_number_of_tokens = defaultdict(lambda: defaultdict(int))
+        stop_words = stopwords.words('english')
+        for target_num, data in zip(newsgroups.target, newsgroups.data):
+            if newsgroups_count[target_num] < num_newsgroups:
+                newsgroups_count[target_num] += 1
+                theme = newsgroups.target_names[target_num]
+                for token in word_tokenize(data):
+                    if token not in stop_words:
+                        lower_token = token.lower()
+                        if all('a' <= ch <= 'z' for ch in token):
+                            target_to_number_of_tokens[theme][lower_token] += 1
+        return [NewsgroupThemeTokens(theme, token_to_count) for theme, token_to_count in sorted(target_to_number_of_tokens.items(), key=fst)]
+
+    @staticmethod
+    def fetch_theme(num_newsgroups: int, theme: str) -> NewsgroupThemeTokens:
         newsgroups_count = defaultdict(int)
         newsgroups = fetch_20newsgroups(subset='train')
         target_to_number_of_tokens = defaultdict(lambda: defaultdict(int))
