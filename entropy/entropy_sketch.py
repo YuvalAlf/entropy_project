@@ -9,9 +9,10 @@ from statistics import mean
 from typing import List
 
 import numpy as np
-from numpy import ndarray
+from numpy import ndarray, cumsum
 
 from utils.functional_utils import map_list
+from utils.itertools_utils import enumerate1
 
 
 @dataclass
@@ -36,3 +37,10 @@ class EntropySketch:
         sketch = self.projection_matrix.dot(np.asarray(prob_vector))
         approximated_entropy = -math.log(mean(map_list(math.exp, sketch)))
         return approximated_entropy, sketch
+
+    @staticmethod
+    def sketch_approximations(average_sketch: List[float]):
+        exponent_values = map_list(math.exp, average_sketch)
+        cumsum_exponent_values = cumsum(exponent_values)
+        for index, cumsum_value in enumerate1(cumsum_exponent_values):
+            yield -math.log(cumsum_value / index)

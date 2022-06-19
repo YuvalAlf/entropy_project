@@ -31,39 +31,21 @@ class EntropyVec(List[float]):
         return calc_entropy(self)
 
     def prepare_alg(self, other_vec: EntropyVec, top_n: int) -> (List[float], Set[int], float, float):
-        other_top_coordinates = other_vec.top_coordinates(top_n)
-        transmitted_coordinates = set(chain(self.top_coordinates(top_n), other_top_coordinates))
+        other_top_coordinates = set(other_vec.top_coordinates(top_n))
+        self_top_coordinates = set(self.top_coordinates(top_n))
+        transmitted_coordinates = set(chain(self_top_coordinates, other_top_coordinates))
         untransmitted_coordinates = set(range(len(self))) - transmitted_coordinates
         other_known_vector = [other_vec[index] if index in transmitted_coordinates else 0 for index in range(len(self))]
         other_min_value = min(map(other_vec.__getitem__, other_top_coordinates), default=1)
         total_remaining = 1 - sum(other_known_vector)
-        return other_known_vector, untransmitted_coordinates, other_min_value, total_remaining
+        communication = 2 * len(transmitted_coordinates) - len(self_top_coordinates.intersection(other_top_coordinates))
+        return other_known_vector, untransmitted_coordinates, other_min_value, total_remaining, communication
 
-    # def upper_bound2(self, other_vec: EntropyVec, top_n: int) -> float:
-    #     other_known_vector, unknown_coordinates, _, total_remaining = self.prepare_alg(other_vec, top_n)
-    #     values_and_locations: List[(int, float)] = sorted(((coord, self[coord]) for coord in unknown_coordinates), key=snd)
-    #     values_and_locations.append((-1, float('inf')))
-    #     finish_loop = False
-    #
-    #     for ((*rest_min_values, (min_index, min_value)), (_, second_min_value)) in windowed_to_start(values_and_locations):
-    #         amount_to_add = second_min_value - min_value
-    #         sum_amount_to_add = amount_to_add * (len(rest_min_values) + 1)
-    #         if sum_amount_to_add > total_remaining:
-    #             amount_to_add = total_remaining / (len(rest_min_values) + 1)
-    #             finish_loop = True
-    #         total_remaining -= sum_amount_to_add
-    #
-    #         for index, value in chain(rest_min_values, [(min_index, min_value)]):
-    #             other_known_vector[index] += amount_to_add
-    #         if finish_loop:
-    #             break
-    #     return EntropyVec(other_known_vector).average_with(self).entropy()
-
-    def upper_bound(self, other_vec: EntropyVec, top_n: int) -> float:
-        other_known_vector, unknown_coordinates, _, total_remaining = self.prepare_alg(other_vec, top_n)
+    def upper_bound(self, other_vec: EntropyVec, top_n: int) -> (float, int):
+        other_known_vector, unknown_coordinates, _, total_remaining, communication = self.prepare_alg(other_vec, top_n)
         average_vector = self.average_with(other_known_vector)
         if len(unknown_coordinates) == 0:
-            return average_vector.entropy()
+            return average_vector.entropy(), communication
         average_vector_sorted_values = sorted(map(average_vector.__getitem__, unknown_coordinates)) + [float('inf')]
         addition_remaining_to_average_vec = total_remaining / 2
 
@@ -78,13 +60,12 @@ class EntropyVec(List[float]):
                 for coord in unknown_coordinates:
                     if average_vector[coord] < threshold_value:
                         average_vector[coord] = threshold_value
-                assert abs(sum(average_vector) - 1) < 0.000001
-                return average_vector.entropy()
+                return average_vector.entropy(), communication
 
         raise ValueError("Some unexpected error occurred. shouldn't reach here")
 
-    def lower_bound(self, other_vec: EntropyVec, top_n: int) -> float:
-        other_known_vector, unknown_coordinates, other_min_value, total_remaining = self.prepare_alg(other_vec, top_n)
+    def lower_bound(self, other_vec: EntropyVec, top_n: int) -> (float, int):
+        other_known_vector, unknown_coordinates, other_min_value, total_remaining, communication = self.prepare_alg(other_vec, top_n)
         for coordinate in sorted(unknown_coordinates, key=self.__getitem__, reverse=True):
             if total_remaining <= other_min_value:
                 other_known_vector[coordinate] = total_remaining
@@ -92,7 +73,7 @@ class EntropyVec(List[float]):
             else:
                 other_known_vector[coordinate] = other_min_value
                 total_remaining -= other_min_value
-        return EntropyVec(other_known_vector).average_with(self).entropy()
+        return EntropyVec(other_known_vector).average_with(self).entropy(), communication
 
     def show_histogram(self, path: str) -> None:
         plt.plot(range(len(self)), sorted(self, reverse=True), color='red')

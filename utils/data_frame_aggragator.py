@@ -12,5 +12,9 @@ class DataFrameAggragator:
         for name, value in name_to_value.items():
             self.dictionary[name].append(value)
 
+    def add_value(self, **name_to_value: Any):
+        for name, value in name_to_value.items():
+            self.dictionary[name].append(value)
+
     def to_data_frame(self) -> pd.DataFrame:
         return pd.DataFrame(self.dictionary)
