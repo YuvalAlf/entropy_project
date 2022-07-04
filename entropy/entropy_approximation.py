@@ -28,12 +28,13 @@ class EntropyApproximation:
         return -average * math.log2(average)
 
     def draw_approximation(self, save_dir: float):
-        num_samples = 60
+        num_samples = 80
         xs_ys = list(np.linspace(0, self.epsilon, num_samples + 1))
-        xs_ys_strs = ['0' if x == 0 else f'{x:1.1e}' if i % 10 == 0 else '' for i, x in enumerate(xs_ys)]
+        xs_ys_labels = ['0' if x == 0 else f'{x:1.1e}' if i % 10 == 0 else '' for i, x in enumerate(xs_ys)]
         error_values = [[self.calc_average(x, y) - self.real_average(x, y) for x in xs_ys] for y in xs_ys]
         with gen_plot(os.path.join(save_dir, f'epsilon={self.epsilon:1.1e}.png'),
-                      width=8, height=6.5, x_label='X Values', y_label='Y Values'):
-            sns.heatmap(error_values, cmap='YlGnBu', linewidth=0.01, annot=False,
-                        yticklabels=xs_ys_strs, xticklabels=xs_ys_strs).invert_yaxis()
+                      width=8, height=6.5, x_label='X Values', y_label='Y Values',
+                      title=f'Entropy Approximation, Epsilon={self.epsilon:1.1E}'):
+            sns.heatmap(error_values, cmap='YlGnBu', linewidth=0, annot=False,
+                        yticklabels=xs_ys_labels, xticklabels=xs_ys_labels).invert_yaxis()
 
