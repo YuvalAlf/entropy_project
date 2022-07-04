@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from itertools import chain
-from typing import Callable, Iterable, Set, List
+from typing import Callable, Set, List
 
 import matplotlib.pyplot as plt
 from more_itertools import pairwise
@@ -9,7 +9,8 @@ from more_itertools import pairwise
 from utils.core_utils import fst, snd
 from utils.functional_utils import map_list
 from utils.itertools_utils import enumerate1
-from utils.math_utils import calc_entropy
+from utils.math_utils import calc_entropy, list_average
+from utils.plotting_utils import gen_plot
 
 
 class EntropyVec(List[float]):
@@ -22,9 +23,9 @@ class EntropyVec(List[float]):
         return EntropyVec([item / sum_value for item in self])
 
     def average_with(self, other_vec: EntropyVec) -> EntropyVec:
-        return EntropyVec([(item1 + item2) / 2 for item1, item2 in zip(self, other_vec)])
+        return EntropyVec(list_average(self, other_vec))
 
-    def top_coordinates(self, top_n: int) -> Iterable[int]:
+    def top_coordinates(self, top_n: int) -> List[int]:
         return map_list(fst, sorted(enumerate(self), key=snd, reverse=True))[:top_n]
 
     def entropy(self) -> float:
@@ -75,11 +76,8 @@ class EntropyVec(List[float]):
                 total_remaining -= other_min_value
         return EntropyVec(other_known_vector).average_with(self).entropy(), communication
 
-    def show_histogram(self, path: str) -> None:
-        plt.plot(range(len(self)), sorted(self, reverse=True), color='red')
-        plt.title('Probability Values Histogram')
-        plt.ylabel('Probability Value')
-        plt.xlabel('Coordinates (Sorted)')
-        plt.ylim(0, None)
-        plt.savefig(path, dpi=300, bbox_inches='tight')
-        plt.close('all')
+    def show_histogram(self, save_path: str) -> None:
+        with gen_plot(save_path, x_label='Coordinates (Sorted)', y_label='Probability Value',
+                      title='Probability Values Histogram'):
+            plt.plot(range(len(self)), sorted(self, reverse=True), color='red')
+            plt.ylim(0, None)
