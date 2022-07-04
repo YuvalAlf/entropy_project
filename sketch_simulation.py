@@ -5,6 +5,7 @@ from random import Random
 from typing import Iterable, Tuple, Callable
 
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 
 from entropy.entropy_sketch import EntropySketch
@@ -12,6 +13,7 @@ from entropy.entropy_vec import EntropyVec
 from newsgroups_entropy import NewsgroupThemeTokens
 from utils.combinatorics_utils import combinations_with_repetitions, combinations_without_repetitions
 from utils.data_frame_aggragator import DataFrameAggragator
+from utils.functional_utils import map_list
 from utils.os_utils import join_create_dir, encode_json
 from utils.plotting_utils import plot_horizontal
 
@@ -27,16 +29,6 @@ UPPER_BOUND_VEC_2_ENTRY = 'Upper Bound Vec2'
 ENTROPY_1_ENTRY = 'Vec1 Entropy'
 ENTROPY_2_ENTRY = 'Vec2 Entropy'
 VEC_LENGTH_ENTRY = 'Vector Length'
-
-
-def synthetic_distributions(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
-    np.random.seed(200)
-    yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size)).normalize()
-    yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size)).normalize()
-    yield 'Uniform (0-0.1)', lambda: EntropyVec(np.random.uniform(0, 0.1, size=vector_size)).normalize()
-    yield 'Uniform (1-2)', lambda: EntropyVec(np.random.uniform(1, 2, size=vector_size)).normalize()
-    yield 'Exponential scale=0.02', lambda: EntropyVec(np.random.exponential(scale=0.02, size=vector_size)).normalize()
-    yield 'Exponential scale=0.01', lambda: EntropyVec(np.random.exponential(scale=0.01, size=vector_size)).normalize()
 
 
 def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, distribution2_name: str,
@@ -99,30 +91,31 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[Tuple[str, EntropyVec], Tuple[str, EntropyVec]]]) -> None:
-    result_path = join_create_dir('results', dir_name)
-    prng = Random(10)
+def sketch_simulation(vector_size: str) -> None:
+    result_path = join_create_dir('results', 'sketch_simulation')
+    prng = Random(100)
+    exp_vec = EntropyVec(np.random.beta(a=0.001, b=100, size=vector_size)).normalize()
+    uniform_vec = EntropyVec(np.random.uniform(100, 101, size=vector_size)).normalize()
+    sketch = EntropySketch(vector_size, vector_size, prng)
 
-    for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in distributions:
-        run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, prng)
+    weight_to_vec = dict()
+    for weight in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        average_vec = EntropyVec([weight*a + (1-weight)*b for a, b in zip(exp_vec, uniform_vec)])
+        average_vec.show_histogram(os.path.join(result_path, f'{weight}.png'))
+        average_vec_entropy = average_vec.entropy()
+        print(average_vec_entropy)
+        weight_to_vec[weight] = [abs(app - average_vec_entropy) for app in sketch.sketch_approximations(sketch.apply(average_vec)[1])]
+    plt.figure(figsize=(8, 8))
+    for weight, approx in weight_to_vec.items():
+        xs = list(range(1, vector_size+1))
+        plt.plot(xs[250:], approx[250:], label=str(weight), alpha=0.7, lw=1)
 
-
-def main_synthetic_distributions(vector_length: int) -> None:
-    distributions = combinations_with_repetitions(synthetic_distributions(vector_length))
-    applied_distributions = (((name1, dist1()), (name2, dist2())) for (name1, dist1), (name2, dist2) in distributions)
-    main_entropy_simulation('synthetic', applied_distributions)
-
-
-def main_newsgroups_distributions(num_newgroups_to_fetch: int, num_tokens: int) -> None:
-    newsgroups = NewsgroupThemeTokens.fetch(num_newgroups_to_fetch)
-    unique_tokens, token_to_location = NewsgroupThemeTokens.unique_tokens(newsgroups, num_tokens)
-    themes_and_entropy_vecs = [(newsgroup.theme, EntropyVec(newsgroup.probability_vector(unique_tokens)))
-                            for newsgroup in newsgroups]
-    dir_path = join_create_dir('results', 'newsgroups')
-    encode_json(unique_tokens, os.path.join(dir_path, 'top_tokens.json'))
-    main_entropy_simulation('newsgroups', combinations_without_repetitions(themes_and_entropy_vecs))
+    plt.legend(loc='best')
+    plt.xlabel('Sketch Size')
+    plt.ylabel('Entropy Approximation Error')
+    plt.savefig(os.path.join(result_path, 'simulation.png'), dpi=300, bbox_inches='tight')
+    plt.close('all')
 
 
 if __name__ == '__main__':
-    main_synthetic_distributions(vector_length=4000)
-    main_newsgroups_distributions(num_newgroups_to_fetch=100, num_tokens=4000)
+    sketch_simulation(2000)
