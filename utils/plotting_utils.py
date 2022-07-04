@@ -9,7 +9,8 @@ def plot_horizontal(x_lims: Tuple[float, float], y_value: float, **plt_kwargs) -
 
 
 @contextlib.contextmanager
-def gen_plot(save_path: str, width: float = 6, height: float = 6, x_label: str = '', y_label: str = '', title: str = '') -> ContextManager[None]:
+def gen_plot(save_path: str, width: float = 6, height: float = 6, x_label: str = '', y_label: str = '',
+             title: str = '') -> ContextManager[None]:
     plt.figure(figsize=(width, height))
     yield
     plt.title(title)
