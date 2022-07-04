@@ -29,15 +29,6 @@ ENTROPY_2_ENTRY = 'Vec2 Entropy'
 VEC_LENGTH_ENTRY = 'Vector Length'
 
 
-def synthetic_distributions(vector_size: int) -> Iterable[Tuple[str, Callable[[], EntropyVec]]]:
-    np.random.seed(200)
-    yield 'Beta a=0.1 b=100', lambda: EntropyVec(np.random.beta(a=0.1, b=100, size=vector_size)).normalize()
-    yield 'Beta a=0.01 b=100', lambda: EntropyVec(np.random.beta(a=0.01, b=100, size=vector_size)).normalize()
-    yield 'Uniform (0-0.1)', lambda: EntropyVec(np.random.uniform(0, 0.1, size=vector_size)).normalize()
-    yield 'Uniform (1-2)', lambda: EntropyVec(np.random.uniform(1, 2, size=vector_size)).normalize()
-    yield 'Exponential scale=0.02', lambda: EntropyVec(np.random.exponential(scale=0.02, size=vector_size)).normalize()
-    yield 'Exponential scale=0.01', lambda: EntropyVec(np.random.exponential(scale=0.01, size=vector_size)).normalize()
-
 
 def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, distribution2_name: str,
                            entropy_vec2: EntropyVec, results_dir_path: str, prng: Random) -> None:
