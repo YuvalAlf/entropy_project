@@ -13,6 +13,7 @@ from numpy import ndarray, cumsum
 
 from utils.functional_utils import map_list
 from utils.itertools_utils import enumerate1
+from utils.math_utils import gen_matrix
 
 
 @dataclass
@@ -31,7 +32,7 @@ class EntropySketch:
     def projection_matrix(self) -> ndarray:
         rows = self.sketch_size
         cols = self.vector_size
-        return np.array([[self.stable_distribution() for _ in range(cols)] for __ in range(rows)])
+        return gen_matrix(self.stable_distribution(), rows, cols)
 
     def apply(self, prob_vector: List[float]) -> (float, List[float]):
         sketch = self.projection_matrix.dot(np.asarray(prob_vector))
