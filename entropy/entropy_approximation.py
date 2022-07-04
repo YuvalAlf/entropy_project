@@ -21,6 +21,15 @@ class EntropyApproximation:
         constant_term = -self.epsilon * (128 * ln_2 - 99) / 60
         return x_term + y_term + x_y_term + constant_term
 
+    def calc_on_vector(self, sum_x_squared: float, sum_x: float, sum_y_squared: float, sum_y: float, x_dot_y: float) -> float:
+        ln_2 = math.log(2)
+        ln_eps = math.log(self.epsilon)
+        x_term = -(32 * ln_2 - 21) / self.epsilon * sum_x_squared / 4 + (61 / 10 * ln_2 - 451 / 120 - ln_eps / 2) * sum_x
+        y_term = -(32 * ln_2 - 21) / self.epsilon * sum_y_squared / 4 + (61 / 10 * ln_2 - 451 / 120 - ln_eps / 2) * sum_y
+        x_y_term = 3 / 10 * (16 * ln_2 - 13) / self.epsilon * x_dot_y
+        constant_term = -self.epsilon * (128 * ln_2 - 99) / 60
+        return x_term + y_term + x_y_term + constant_term
+
     def real_average(self, x: float, y: float) -> float:
         average = (x + y) / 2
         if average == 0:

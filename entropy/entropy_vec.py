@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from more_itertools import pairwise
 
 from utils.core_utils import fst, snd
-from utils.functional_utils import map_list, windowed_to_start
+from utils.functional_utils import map_list
 from utils.itertools_utils import enumerate1
 from utils.math_utils import calc_entropy
 

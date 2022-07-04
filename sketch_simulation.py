@@ -14,6 +14,7 @@ from newsgroups_entropy import NewsgroupThemeTokens
 from utils.combinatorics_utils import combinations_with_repetitions, combinations_without_repetitions
 from utils.data_frame_aggragator import DataFrameAggragator
 from utils.functional_utils import map_list
+from utils.math_utils import list_average
 from utils.os_utils import join_create_dir, encode_json
 from utils.plotting_utils import plot_horizontal
 
@@ -75,10 +76,7 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
         max_x = x_lims[1]
         xs = list(range(1, max_x + 1))
         sketch = EntropySketch(max_x, len(entropy_vec1), prng)
-        _, sketch_projection1 = sketch.apply(entropy_vec1)
-        _, sketch_projection2 = sketch.apply(entropy_vec2)
-        average_sketch = [(v1 + v2) / 2 for v1, v2 in zip(sketch_projection1, sketch_projection2)]
-        sketch_approximations = list(EntropySketch.sketch_approximations(average_sketch))
+        sketch_approximations = list(sketch.sketch_approximations(list_average(entropy_vec1, entropy_vec2)))
 
         plt.plot(xs, sketch_approximations, color=color, alpha=0.8, label=f'Entropy Sketch {sketch_index}', zorder=-10, lw=1)
 

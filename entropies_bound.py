@@ -83,8 +83,8 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
         max_x = x_lims[1]
         xs = list(range(1, max_x + 1))
         sketch = EntropySketch(max_x, len(entropy_vec1), prng)
-        _, sketch_projection1 = sketch.apply(entropy_vec1)
-        _, sketch_projection2 = sketch.apply(entropy_vec2)
+        sketch_projection1 = sketch.apply(entropy_vec1)
+        sketch_projection2 = sketch.apply(entropy_vec2)
         average_sketch = [(v1 + v2) / 2 for v1, v2 in zip(sketch_projection1, sketch_projection2)]
         sketch_approximations = list(EntropySketch.sketch_approximations(average_sketch))
 

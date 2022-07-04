@@ -6,7 +6,7 @@ from functools import cached_property
 from math import pi
 from random import Random
 from statistics import mean
-from typing import List
+from typing import List, Iterable, Tuple
 
 import numpy as np
 from numpy import ndarray, cumsum
@@ -32,16 +32,16 @@ class EntropySketch:
     def projection_matrix(self) -> ndarray:
         rows = self.sketch_size
         cols = self.vector_size
-        return gen_matrix(self.stable_distribution(), rows, cols)
+        return gen_matrix(self.stable_distribution, rows, cols)
 
-    def apply(self, prob_vector: List[float]) -> (float, List[float]):
-        sketch = self.projection_matrix.dot(np.asarray(prob_vector))
-        approximated_entropy = -math.log(mean(map_list(math.exp, sketch)))
-        return approximated_entropy, sketch
+    def project(self, prob_vector: List[float]) -> ndarray:
+        return self.projection_matrix.dot(np.asarray(prob_vector))
 
-    @staticmethod
-    def sketch_approximations(average_sketch: List[float]):
-        exponent_values = map_list(math.exp, average_sketch)
+    def apply(self, prob_vector: List[float]) -> float:
+        return -math.log(mean(map_list(math.exp, self.project(prob_vector))))
+
+    def sketch_approximations(self, prob_vector: List[float]) -> Iterable[Tuple[int, float]]:
+        exponent_values = map_list(math.exp, self.project(prob_vector))
         cumsum_exponent_values = cumsum(exponent_values)
-        for index, cumsum_value in enumerate1(cumsum_exponent_values):
-            yield -math.log(cumsum_value / index)
+        for sketch_size, cumsum_value in enumerate1(cumsum_exponent_values):
+            yield sketch_size, -math.log(cumsum_value / sketch_size)
