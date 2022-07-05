@@ -30,6 +30,7 @@ class EntropySketch:
 
     @cached_property
     def projection_matrix(self) -> ndarray:
+        # TODO: generate vector after vector
         rows = self.sketch_size
         cols = self.vector_size
         return gen_matrix(self.stable_distribution, rows, cols)
@@ -44,4 +45,5 @@ class EntropySketch:
         exponent_values = map_list(math.exp, self.project(prob_vector))
         cumsum_exponent_values = cumsum(exponent_values)
         for sketch_size, cumsum_value in enumerate1(cumsum_exponent_values):
-            yield sketch_size, -math.log(cumsum_value / sketch_size)
+            sketch_value = 0 if cumsum_value <= 0 else -math.log(cumsum_value / sketch_size)
+            yield sketch_size, sketch_value

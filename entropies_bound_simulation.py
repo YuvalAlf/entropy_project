@@ -1,18 +1,19 @@
 import math
 import os
+from itertools import combinations_with_replacement
 from math import log
 from random import Random
-from typing import Iterable, Tuple, Callable
+from typing import Iterable, Tuple
 
-import numpy as np
 from matplotlib import pyplot as plt
 
+from entropy.distributions import synthetic_distributions
 from entropy.entropy_sketch import EntropySketch
 from entropy.entropy_vec import EntropyVec
-from newsgroups_entropy import NewsgroupThemeTokens
-from utils.combinatorics_utils import combinations_with_repetitions, combinations_without_repetitions
+from entropy.newsgroups import NewsgroupThemeTokens
 from utils.data_frame_aggragator import DataFrameAggragator
-from utils.os_utils import join_create_dir, encode_json
+from utils.itertools_utils import unzip
+from utils.os_utils import join_create_dir
 from utils.plotting_utils import plot_horizontal
 
 COMMUNICATION_ENTRY = 'Communication'
@@ -29,17 +30,17 @@ ENTROPY_2_ENTRY = 'Vec2 Entropy'
 VEC_LENGTH_ENTRY = 'Vector Length'
 
 
-
 def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, distribution2_name: str,
                            entropy_vec2: EntropyVec, results_dir_path: str, prng: Random) -> None:
     assert len(entropy_vec1) == len(entropy_vec2)
     vec_length = len(entropy_vec1)
-    print(f'Running {distribution1_name} and {distribution2_name}, Vector Length = {vec_length}...')
     save_dir = join_create_dir(results_dir_path, f'{distribution1_name}_{distribution2_name}')
+    average_vector = entropy_vec1.average_with(entropy_vec2)
 
     entropy_vec1.show_histogram(os.path.join(save_dir, f'{distribution1_name}_1.png'))
     entropy_vec2.show_histogram(os.path.join(save_dir, f'{distribution2_name}_2.png'))
-    entropy_vec1.average_with(entropy_vec2).show_histogram(os.path.join(save_dir, f'average_vector.png'))
+
+    average_vector.show_histogram(os.path.join(save_dir, f'average_vector.png'))
 
     df_aggragator = DataFrameAggragator()
     num_samples = 200
@@ -72,12 +73,8 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='firebrick', alpha=0.8, label=f'Upper Bound: {distribution2_name}')
     for sketch_index, color in [(1, 'yellow'), (2, 'gold'), (3, 'orange'), (4, 'olive'), (5, 'goldenrod')]:
         max_x = x_lims[1]
-        xs = list(range(1, max_x + 1))
         sketch = EntropySketch(max_x, len(entropy_vec1), prng)
-        sketch_projection1 = sketch.apply(entropy_vec1)
-        sketch_projection2 = sketch.apply(entropy_vec2)
-        average_sketch = [(v1 + v2) / 2 for v1, v2 in zip(sketch_projection1, sketch_projection2)]
-        sketch_approximations = list(EntropySketch.sketch_approximations(average_sketch))
+        xs, sketch_approximations = unzip(list(sketch.sketch_approximations(average_vector))[10:])
 
         plt.plot(xs, sketch_approximations, color=color, alpha=0.8, label=f'Entropy Sketch {sketch_index}', zorder=-10, lw=1)
 
@@ -90,30 +87,25 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[Tuple[str, EntropyVec], Tuple[str, EntropyVec]]]) -> None:
+def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[str, EntropyVec]]) -> None:
     result_path = join_create_dir('results', dir_name)
     prng = Random(10)
 
-    for (distribution1_name, entropy_vec1), (distribution2_name, entropy_vec2) in distributions:
-        run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, prng)
+    for (dist1_name, entropy_vec1), (dist2_name, entropy_vec2) in combinations_with_replacement(distributions, 2):
+        print(f'Running {dist1_name} and {dist2_name}')
+        run_entropy_simulation(dist1_name, entropy_vec1, dist2_name, entropy_vec2, result_path, prng)
 
 
 def main_synthetic_distributions(vector_length: int) -> None:
-    distributions = combinations_with_repetitions(synthetic_distributions(vector_length))
-    applied_distributions = (((name1, dist1()), (name2, dist2())) for (name1, dist1), (name2, dist2) in distributions)
-    main_entropy_simulation('synthetic', applied_distributions)
+    distributions = list(synthetic_distributions(vector_length))
+    main_entropy_simulation('synthetic', distributions)
 
 
-def main_newsgroups_distributions(num_newgroups_to_fetch: int, num_tokens: int) -> None:
-    newsgroups = NewsgroupThemeTokens.fetch(num_newgroups_to_fetch)
-    unique_tokens, token_to_location = NewsgroupThemeTokens.unique_tokens(newsgroups, num_tokens)
-    themes_and_entropy_vecs = [(newsgroup.theme, EntropyVec(newsgroup.probability_vector(unique_tokens)))
-                            for newsgroup in newsgroups]
-    dir_path = join_create_dir('results', 'newsgroups')
-    encode_json(unique_tokens, os.path.join(dir_path, 'top_tokens.json'))
-    main_entropy_simulation('newsgroups', combinations_without_repetitions(themes_and_entropy_vecs))
+def main_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_tokens: int) -> None:
+    newsgroups = NewsgroupThemeTokens.probability_vectors(num_newsgroups_in_each_theme, num_tokens)
+    main_entropy_simulation('newsgroups', newsgroups)
 
 
 if __name__ == '__main__':
-    main_synthetic_distributions(vector_length=4000)
-    main_newsgroups_distributions(num_newgroups_to_fetch=100, num_tokens=4000)
+    # main_synthetic_distributions(vector_length=1000)
+    main_newsgroups_distributions(num_newsgroups_in_each_theme=100, num_tokens=1000)

@@ -13,11 +13,12 @@ from utils.plotting_utils import gen_plot
 
 def entropy_sketch_visualization() -> None:
     prng = Random(10)
-    vector_length = 2000
-    max_sketch_size = 500
-    num_sketches = 4
-    min_sketch_size = 10
+    vector_length = 8000
+    max_sketch_size = 2000
+    num_sketches = 5
+    min_sketch_size = 20
     for distribution_name, probability_vector in synthetic_distributions(vector_length):
+        print(f'Visualizing entropy sketch for {distribution_name}...')
         save_dir = join_create_dir(RESULTS_DIR_PATH, 'entropy_sketch_visualization', distribution_name)
         probability_vector.show_histogram(os.path.join(save_dir, 'distribution.png'))
         with gen_plot(os.path.join(save_dir, 'sketch_approximation.png'), x_label='Sketch Size', y_label='Entropy'):
