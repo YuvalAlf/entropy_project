@@ -7,7 +7,8 @@ from utils.paths_dir import RESULTS_DIR_PATH
 
 def draw_figures() -> None:
     save_dir = join_create_dir(RESULTS_DIR_PATH, 'entropy_approximation')
-    for epsilon in np.linspace(0.0001, 0.1, 10):
+    for epsilon in np.linspace(0.00001, 0.001, 20):
+        print(f'Epsilon = {epsilon}')
         EntropyApproximation(epsilon).draw_approximation(save_dir)
 
 

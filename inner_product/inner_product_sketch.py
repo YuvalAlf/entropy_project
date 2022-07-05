@@ -18,7 +18,7 @@ class InnerProductSketch:
     def projection_matrix(self) -> ndarray:
         rows = self.sketch_size
         cols = self.vector_size
-        return gen_matrix(lambda: self.prng.uniform(-1, 1), rows, cols)
+        return gen_matrix(lambda: self.prng.gauss(0, 1), rows, cols)
 
     def calc_inner_product(self, vec1: ndarray, vec2: ndarray) -> float:
         projection1 = self.projection_matrix.dot(vec1)

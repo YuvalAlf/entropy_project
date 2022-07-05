@@ -34,7 +34,7 @@ class EntropyApproximation:
         average = (x + y) / 2
         if average == 0:
             return 0
-        return -average * math.log2(average)
+        return -average * math.log(average)
 
     def draw_approximation(self, save_dir: float):
         num_samples = 80
