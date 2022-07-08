@@ -13,7 +13,7 @@ from utils.plotting_utils import gen_plot
 
 def entropy_sketch_visualization() -> None:
     prng = Random(10)
-    vector_length = 8000
+    vector_length = 2000
     max_sketch_size = 2000
     num_sketches = 5
     min_sketch_size = 20

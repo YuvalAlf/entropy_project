@@ -1,6 +1,5 @@
 import math
 import os
-from itertools import combinations_with_replacement
 from math import log
 from random import Random
 from typing import Iterable, Tuple
@@ -72,8 +71,7 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='navy', alpha=0.8, label=f'Upper Bound: {distribution1_name}')
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='firebrick', alpha=0.8, label=f'Upper Bound: {distribution2_name}')
     for sketch_index, color in [(1, 'yellow'), (2, 'gold'), (3, 'orange'), (4, 'olive'), (5, 'goldenrod')]:
-        max_x = x_lims[1]
-        sketch = EntropySketch(max_x, len(entropy_vec1), prng)
+        sketch = EntropySketch(x_lims[1], len(entropy_vec1), prng)
         xs, sketch_approximations = unzip(list(sketch.sketch_approximations(average_vector))[10:])
 
         plt.plot(xs, sketch_approximations, color=color, alpha=0.8, label=f'Entropy Sketch {sketch_index}', zorder=-10, lw=1)
@@ -91,13 +89,14 @@ def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[str, En
     result_path = join_create_dir('results', dir_name)
     prng = Random(10)
 
-    for (dist1_name, entropy_vec1), (dist2_name, entropy_vec2) in combinations_with_replacement(distributions, 2):
-        print(f'Running {dist1_name} and {dist2_name}')
-        run_entropy_simulation(dist1_name, entropy_vec1, dist2_name, entropy_vec2, result_path, prng)
+    for distribution1_name, entropy_vec1 in distributions:
+        for distribution2_name, entropy_vec2 in distributions:
+            print(f'Running {distribution1_name} and {distribution2_name}')
+            run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, prng)
 
 
 def main_synthetic_distributions(vector_length: int) -> None:
-    distributions = list(synthetic_distributions(vector_length))
+    distributions = synthetic_distributions(vector_length)
     main_entropy_simulation('synthetic', distributions)
 
 
@@ -107,5 +106,5 @@ def main_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_tokens:
 
 
 if __name__ == '__main__':
-    # main_synthetic_distributions(vector_length=1000)
-    main_newsgroups_distributions(num_newsgroups_in_each_theme=100, num_tokens=1000)
+    main_synthetic_distributions(vector_length=1000)
+    # main_newsgroups_distributions(num_newsgroups_in_each_theme=100, num_tokens=1000)
