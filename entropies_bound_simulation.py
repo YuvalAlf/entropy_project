@@ -1,8 +1,9 @@
 import math
 import os
+from itertools import tee
 from math import log
 from random import Random
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, List
 
 from matplotlib import pyplot as plt
 
@@ -85,26 +86,27 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def main_entropy_simulation(dir_name: str, distributions: Iterable[Tuple[str, EntropyVec]]) -> None:
+def main_entropy_simulation(dir_name: str, distributions1: List[Tuple[str, EntropyVec]],
+                            distributions2: List[Tuple[str, EntropyVec]]) -> None:
     result_path = join_create_dir('results', dir_name)
     prng = Random(10)
-
-    for distribution1_name, entropy_vec1 in distributions:
-        for distribution2_name, entropy_vec2 in distributions:
+    for distribution1_name, entropy_vec1 in distributions1:
+        for distribution2_name, entropy_vec2 in distributions2:
             print(f'Running {distribution1_name} and {distribution2_name}')
             run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, prng)
 
 
 def main_synthetic_distributions(vector_length: int) -> None:
-    distributions = synthetic_distributions(vector_length)
-    main_entropy_simulation('synthetic', distributions)
+    distributions1 = synthetic_distributions(vector_length)
+    distributions2 = synthetic_distributions(vector_length)
+    main_entropy_simulation('synthetic', distributions1, distributions2)
 
 
 def main_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_tokens: int) -> None:
     newsgroups = NewsgroupThemeTokens.probability_vectors(num_newsgroups_in_each_theme, num_tokens)
-    main_entropy_simulation('newsgroups', newsgroups)
+    main_entropy_simulation('newsgroups', newsgroups, newsgroups)
 
 
 if __name__ == '__main__':
-    main_synthetic_distributions(vector_length=1000)
+    main_synthetic_distributions(vector_length=10000)
     # main_newsgroups_distributions(num_newsgroups_in_each_theme=100, num_tokens=1000)

@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, Callable
+from typing import Iterable, Tuple, Callable, List
 
 import numpy as np
 
@@ -15,6 +15,6 @@ def synthetic_distributions_generators(vector_length: int)\
     yield 'Exponential scale=0.01', lambda: EntropyVec(np.random.exponential(scale=0.01, size=vector_length)).normalize()
 
 
-def synthetic_distributions(vector_length: int) -> Iterable[Tuple[str, EntropyVec]]:
-    yield from ((name, distribution_generator())
-                for name, distribution_generator in synthetic_distributions_generators(vector_length))
+def synthetic_distributions(vector_length: int) -> List[Tuple[str, EntropyVec]]:
+    return [(name, distribution_generator())
+            for name, distribution_generator in synthetic_distributions_generators(vector_length)]

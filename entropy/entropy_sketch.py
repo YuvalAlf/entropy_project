@@ -22,21 +22,26 @@ class EntropySketch:
     vector_size: int
     prng: Random
 
-    def stable_distribution(self) -> float:
-        u1, u2 = self.prng.uniform(0, 1), self.prng.uniform(0, 1)
+    @staticmethod
+    def stable_distribution(prng: Random) -> float:
+        u1, u2 = prng.uniform(0, 1), prng.uniform(0, 1)
         w1 = pi * (u1 - 0.5)
         w2 = -math.log(u2)
         return math.tan(w1) * (pi / 2 - w1) + math.log(w2 * math.cos(w1) / (pi / 2 - w1))
 
     @cached_property
-    def projection_matrix(self) -> ndarray:
-        # TODO: generate vector after vector
-        rows = self.sketch_size
-        cols = self.vector_size
-        return gen_matrix(self.stable_distribution, rows, cols)
+    def used_seed(self) -> int:
+        return self.prng.randint(0, 1000000)
 
-    def project(self, prob_vector: List[float]) -> ndarray:
-        return self.projection_matrix.dot(np.asarray(prob_vector))
+    def projection_vectors(self) -> Iterable[ndarray]:
+        random_generator = Random(self.used_seed)
+        for _ in range(self.sketch_size):
+            yield np.array([EntropySketch.stable_distribution(random_generator) for _ in range(self.vector_size)])
+
+    def project(self, prob_vector: List[float]) -> Iterable[float]:
+        prob_vector_array = np.asarray(prob_vector)
+        for projection_vector in self.projection_vectors():
+            yield projection_vector.dot(prob_vector_array)
 
     def apply(self, prob_vector: List[float]) -> float:
         return -math.log(mean(map_list(math.exp, self.project(prob_vector))))
