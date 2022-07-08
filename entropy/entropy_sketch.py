@@ -13,7 +13,6 @@ from numpy import ndarray, cumsum
 
 from utils.functional_utils import map_list
 from utils.itertools_utils import enumerate1
-from utils.math_utils import gen_matrix
 
 
 @dataclass

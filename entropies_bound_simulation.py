@@ -108,5 +108,5 @@ def main_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_tokens:
 
 
 if __name__ == '__main__':
-    main_synthetic_distributions(vector_length=10000)
+    main_synthetic_distributions(vector_length=1000)
     # main_newsgroups_distributions(num_newsgroups_in_each_theme=100, num_tokens=1000)
