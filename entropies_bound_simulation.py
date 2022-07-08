@@ -1,9 +1,8 @@
 import math
 import os
-from itertools import tee
 from math import log
 from random import Random
-from typing import Iterable, Tuple, List
+from typing import Tuple, List
 
 from matplotlib import pyplot as plt
 

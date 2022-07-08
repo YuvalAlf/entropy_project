@@ -15,7 +15,7 @@ def entropy_sketch_visualization() -> None:
     prng = Random(10)
     vector_length = 2000
     max_sketch_size = 2000
-    num_sketches = 5
+    num_sketches = 3
     min_sketch_size = 20
     for distribution_name, probability_vector in synthetic_distributions(vector_length):
         print(f'Visualizing entropy sketch for {distribution_name}...')
