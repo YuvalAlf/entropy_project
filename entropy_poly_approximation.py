@@ -1,6 +1,6 @@
 import numpy as np
 
-from entropy.entropy_approximation import EntropyAverageApproximation
+from entropy.entropy_average_approximation import EntropyAverageApproximation
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH
 

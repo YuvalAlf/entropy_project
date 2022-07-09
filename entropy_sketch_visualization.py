@@ -18,7 +18,7 @@ def entropy_sketch_visualization() -> None:
         print(f'Visualizing entropy sketch for {distribution_name}...')
         save_dir = join_create_dir(RESULTS_DIR_PATH, 'entropy_sketch_visualization', distribution_name)
         probability_vector.show_histogram(os.path.join(save_dir, 'distribution.png'))
-        with gen_plot(os.path.join(save_dir, 'sketch_approximation.png'), x_label='Sketch Size', y_label='Entropy'):
+        with gen_plot(os.path.join(save_dir, 'sketch_approximation.png'), x_label='Sketch Size', y_label='Value'):
             plot_horizontal((0, max_sketch_size), probability_vector.entropy(), clip_on=False, color='black',
                             label='Real Entropy', linestyle='--', lw=2, zorder=0)
             for sketch_num, color in [(1, 'orange'), (2, 'red'), (3, 'yellow')]:

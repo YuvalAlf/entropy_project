@@ -1,22 +1,31 @@
 import math
 import os
-from dataclasses import dataclass
+from functools import cached_property
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from entropy.entropy_vec import EntropyVec
+from sketches.jl_sketch import JohnsonLindenstraussSketch
 from utils.functional_utils import map_list
+from utils.math_utils import inner_product
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH
 from utils.plotting_utils import gen_plot
 
 
-@dataclass
 class EntropyPolyApproximation:
-    epsilon: float = 0.001
+
+    @cached_property
+    def epsilon(self) -> float:
+        return 0.001
 
     def calc_approximation(self, x: float) -> float:
         return -1250 * x * x + 7.991088 * x + 0.000125
+
+    def calc_approximation_on_vector(self, x_sum: float, y_sum: float, x_squared_sum: float, y_squared_sum: float,
+                                     length: int, inner_product_value: float) -> float:
+        return 0.000125 * length + (7.991088 / 2) * (x_sum + y_sum) - (1250 / 4) * (x_squared_sum + y_squared_sum + 2 * inner_product_value)
 
     def calc_real_value(self, x: float) -> float:
         if x == 0:
@@ -33,6 +42,18 @@ class EntropyPolyApproximation:
             plt.plot(xs, real_ys, alpha=0.7, label='Entropy', color='r')
             plt.plot(xs, approximated_ys, alpha=0.7, label='Poly', color='b')
             plt.legend()
+
+    def draw(self, sketch_size: int, probability_vector1: EntropyVec, probability_vector2: EntropyVec, color: str, label: str, seed: int) -> None:
+        jl_sketch = JohnsonLindenstraussSketch(sketch_size, len(probability_vector1), seed)
+        xs = []
+        ys = []
+        known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, untransmitted_coords = probability_vector1.send_bigger(probability_vector2, min_value=self.epsilon)
+        inner_prod_vector1 = [probability_vector1[coord] for coord in untransmitted_coords]
+        inner_prod_vector2 = [probability_vector2[coord] for coord in untransmitted_coords]
+        for sketch_size, inner_product_value in jl_sketch.sketch_approximations(inner_prod_vector1, inner_prod_vector2):
+            xs.append(sketch_size)
+            ys.append(known_entropy + self.calc_approximation_on_vector(x_sum, y_sum, x_squared_sum, y_squared_sum, len(untransmitted_coords), inner_product_value))
+        plt.plot(xs, ys, color=color, label=label)
 
 
 EntropyPolyApproximation().draw_approximation(join_create_dir('..', RESULTS_DIR_PATH, 'entropy_poly_approximation'))

@@ -1,3 +1,4 @@
+import math
 from typing import Sequence, Callable, List, Iterable
 
 import numpy as np
@@ -8,6 +9,13 @@ from numpy import ndarray
 
 def calc_entropy(vector: Sequence[float]) -> float:
     return scipy.stats.entropy(vector)
+
+
+def calc_entropy_on_average(x: float, y: float) -> float:
+    average = (x + y) / 2
+    if average == 0:
+        return 0
+    return -average * math.log(average)
 
 
 def gen_matrix(gen_value: Callable[[], float], rows: int, cols: int) -> ndarray:
