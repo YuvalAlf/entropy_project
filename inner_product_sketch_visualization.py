@@ -1,7 +1,7 @@
 import os.path
 from random import Random
 
-from entropy.distributions import synthetic_distributions
+from utils.distributions import synthetic_distributions
 from inner_product.inner_product_sketch import InnerProductSketch
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH

@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, List
+from typing import Iterable, Tuple
 
 from utils.typing_utils import T, K
 

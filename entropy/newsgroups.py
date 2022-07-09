@@ -42,23 +42,6 @@ class NewsgroupThemeTokens:
                             target_to_number_of_tokens[theme][lower_token] += 1
         return [NewsgroupThemeTokens(theme, token_to_count) for theme, token_to_count in sorted(target_to_number_of_tokens.items(), key=fst)]
 
-    @staticmethod
-    def fetch_theme(num_newsgroups: int, theme: str) -> NewsgroupThemeTokens:
-        newsgroups_count = defaultdict(int)
-        newsgroups = fetch_20newsgroups(subset='train')
-        target_to_number_of_tokens = defaultdict(lambda: defaultdict(int))
-        stop_words = stopwords.words('english')
-        for target_num, data in zip(newsgroups.target, newsgroups.data):
-            if newsgroups_count[target_num] < num_newsgroups:
-                newsgroups_count[target_num] += 1
-                theme = newsgroups.target_names[target_num]
-                for token in word_tokenize(data):
-                    if token not in stop_words:
-                        lower_token = token.lower()
-                        if all('a' <= ch <= 'z' for ch in token):
-                            target_to_number_of_tokens[theme][lower_token] += 1
-        return [NewsgroupThemeTokens(theme, token_to_count) for theme, token_to_count in sorted(target_to_number_of_tokens.items(), key=fst)]
-
     def probability_vector(self, unique_tokens: List[str]) -> EntropyVec:
         count_vector = [self.token_to_count.get(token, 0) for token in unique_tokens]
         return EntropyVec(count_vector).normalize()

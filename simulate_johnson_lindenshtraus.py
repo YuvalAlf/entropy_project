@@ -3,7 +3,7 @@ from random import Random
 
 import matplotlib.pyplot as plt
 
-from entropy.distributions import synthetic_distributions
+from utils.distributions import synthetic_distributions
 from entropy.entropy_sketch import CliffordEntropySketch
 from utils.itertools_utils import unzip
 from utils.os_utils import join_create_dir

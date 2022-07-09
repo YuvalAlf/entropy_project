@@ -6,7 +6,7 @@ from typing import Tuple, List
 
 from matplotlib import pyplot as plt
 
-from entropy.distributions import synthetic_distributions
+from utils.distributions import synthetic_distributions
 from entropy.entropy_sketch import CliffordEntropySketch
 from entropy.entropy_vec import EntropyVec
 from entropy.newsgroups import NewsgroupThemeTokens
