@@ -7,7 +7,7 @@ from typing import Tuple, List
 from matplotlib import pyplot as plt
 
 from entropy.distributions import synthetic_distributions
-from entropy.entropy_sketch import EntropySketch
+from entropy.entropy_sketch import CliffordEntropySketch
 from entropy.entropy_vec import EntropyVec
 from entropy.newsgroups import NewsgroupThemeTokens
 from utils.data_frame_aggragator import DataFrameAggragator
@@ -71,7 +71,7 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='navy', alpha=0.8, label=f'Upper Bound: {distribution1_name}')
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='firebrick', alpha=0.8, label=f'Upper Bound: {distribution2_name}')
     for sketch_index, color in [(1, 'yellow'), (2, 'gold'), (3, 'orange'), (4, 'olive'), (5, 'goldenrod')]:
-        sketch = EntropySketch(x_lims[1], len(entropy_vec1), prng)
+        sketch = CliffordEntropySketch(x_lims[1], len(entropy_vec1), prng)
         xs, sketch_approximations = unzip(list(sketch.sketch_approximations(average_vector))[10:])
 
         plt.plot(xs, sketch_approximations, color=color, alpha=0.8, label=f'Entropy Sketch {sketch_index}', zorder=-10, lw=1)

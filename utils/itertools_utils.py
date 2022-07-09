@@ -9,3 +9,9 @@ def enumerate1(items: Iterable[T]) -> Iterable[Tuple[int, T]]:
 
 def unzip(items: Iterable[Tuple[T, K]]) -> (Iterable[T], Iterable[K]):
     return zip(*items)
+
+
+def skip(items: Iterable[Tuple[T]], items_to_skip: int) -> Iterable[T]:
+    for index, item in enumerate(items):
+        if index >= items_to_skip:
+            yield item

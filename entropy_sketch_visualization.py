@@ -4,7 +4,7 @@ from random import Random
 import matplotlib.pyplot as plt
 
 from entropy.distributions import synthetic_distributions
-from entropy.entropy_sketch import EntropySketch
+from entropy.entropy_sketch import CliffordEntropySketch
 from utils.itertools_utils import unzip
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH
@@ -23,7 +23,7 @@ def entropy_sketch_visualization() -> None:
         probability_vector.show_histogram(os.path.join(save_dir, 'distribution.png'))
         with gen_plot(os.path.join(save_dir, 'sketch_approximation.png'), x_label='Sketch Size', y_label='Entropy'):
             for sketch_num in range(1, num_sketches + 1):
-                sketch = EntropySketch(max_sketch_size, vector_length, prng)
+                sketch = CliffordEntropySketch(max_sketch_size, vector_length, prng)
                 sketch_sizes, approximation_values = unzip(list(sketch.sketch_approximations(probability_vector))[min_sketch_size:])
                 plt.scatter(sketch_sizes, approximation_values, clip_on=False, alpha=0.6,
                             label=f'Entropy Sketch Approximation {sketch_num}', s=2, zorder=1)

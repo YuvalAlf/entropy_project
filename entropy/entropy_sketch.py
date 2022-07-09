@@ -12,11 +12,11 @@ import numpy as np
 from numpy import ndarray, cumsum
 
 from utils.functional_utils import map_list
-from utils.itertools_utils import enumerate1
+from utils.itertools_utils import enumerate1, skip
 
 
 @dataclass
-class EntropySketch:
+class CliffordEntropySketch:
     sketch_size: int
     vector_size: int
     prng: Random
@@ -35,7 +35,7 @@ class EntropySketch:
     def projection_vectors(self) -> Iterable[ndarray]:
         random_generator = Random(self.used_seed)
         for _ in range(self.sketch_size):
-            yield np.array([EntropySketch.stable_distribution(random_generator) for _ in range(self.vector_size)])
+            yield np.array([CliffordEntropySketch.stable_distribution(random_generator) for _ in range(self.vector_size)])
 
     def project(self, prob_vector: List[float]) -> Iterable[float]:
         prob_vector_array = np.asarray(prob_vector)
@@ -48,6 +48,6 @@ class EntropySketch:
     def sketch_approximations(self, prob_vector: List[float]) -> Iterable[Tuple[int, float]]:
         exponent_values = map_list(math.exp, self.project(prob_vector))
         cumsum_exponent_values = cumsum(exponent_values)
-        for sketch_size, cumsum_value in enumerate1(cumsum_exponent_values):
+        for sketch_size, cumsum_value in skip(enumerate1(cumsum_exponent_values), 20):
             sketch_value = 0 if cumsum_value <= 0 else -math.log(cumsum_value / sketch_size)
             yield sketch_size, sketch_value
