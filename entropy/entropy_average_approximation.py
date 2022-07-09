@@ -9,7 +9,7 @@ from utils.plotting_utils import gen_plot
 
 
 @dataclass
-class EntropyApproximation:
+class EntropyAverageApproximation:
     epsilon: float
 
     def calc_average(self, x: float, y: float) -> float:
