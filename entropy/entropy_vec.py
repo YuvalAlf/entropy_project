@@ -57,8 +57,10 @@ class EntropyVec(List[float]):
         y_sum = sum(other_vec[coord] for coord in untransmitted_coordinates)
         x_squared_sum = sum(self[coord]**2 for coord in untransmitted_coordinates)
         y_squared_sum = sum(other_vec[coord]**2 for coord in untransmitted_coordinates)
+        x_tripled_sum = sum(self[coord]**3 for coord in untransmitted_coordinates)
+        y_tripled_sum = sum(other_vec[coord]**3 for coord in untransmitted_coordinates)
 
-        return known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, untransmitted_coordinates
+        return known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, untransmitted_coordinates
 
     def upper_bound(self, other_vec: EntropyVec, top_n: int) -> (float, int):
         other_known_vector, unknown_coordinates, _, total_remaining, communication = self.prepare_alg(other_vec, top_n)

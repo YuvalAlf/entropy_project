@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 from entropy.entropy_average_approximation import EntropyAverageApproximation
 from entropy.entropy_poly_approximation import EntropyPolyApproximation
+from entropy.entropy_poly_approximation1_deg3 import EntropyPolyApproximation1Deg3
+from entropy.entropy_poly_approximation2 import EntropyPolyApproximation2
+from entropy.entropy_poly_approximation2_deg3 import EntropyPolyApproximation2Deg3
 from sketches.clifford_entropy_sketch import CliffordEntropySketch
 from utils.distributions import synthetic_distributions
 from utils.os_utils import join_create_dir
@@ -30,13 +33,25 @@ def simulate_our_sketches_for_entropy(vector_length: int, sketch_size: int) -> N
                     label = f'Clifford {sketch_num}'
                     sketch = CliffordEntropySketch(sketch_size, vector_length, prng.randint(0, 1000000))
                     sketch.draw(probability_vector1, probability_vector2, color, label)
-                for sketch_num, color in [(1, 'green'), (2, 'lawngreen'), (3, 'olive')]:
-                    label = f'Poly Approximation {sketch_num}'
-                    sketch = EntropyPolyApproximation()
+                # for sketch_num, color in [(1, 'green'), (2, 'lawngreen'), (3, 'olive')]:
+                #     label = f'Poly Approximation {sketch_num}'
+                #     sketch = EntropyPolyApproximation()
+                #     sketch.draw(sketch_size, probability_vector1, probability_vector2, color, label, prng.randint(0, 1000000))
+                # for sketch_num, color in [(1, 'violet'), (2, 'darkviolet'), (3, 'slateblue')]:
+                #     label = f'Poly Approximation2 {sketch_num}'
+                #     sketch = EntropyPolyApproximation2()
+                #     sketch.draw(sketch_size, probability_vector1, probability_vector2, color, label, prng.randint(0, 1000000))
+                # for epsilon, color in [(0.001, 'blue'), (0.0005, 'deepskyblue'), (0.0001, 'turquoise')]:
+                #     label = f'Average Approximation Epsilon={epsilon}'
+                #     sketch = EntropyAverageApproximation(epsilon)
+                #     sketch.draw(sketch_size, probability_vector1, probability_vector2, color, label, prng.randint(0, 1000000))
+                for epsilon, color in [(0.0003, 'deepskyblue'), (0.0002, 'cyan'), (0.0001, 'turquoise')]:
+                    label = f'Poly3 eps={epsilon} no free var'
+                    sketch = EntropyPolyApproximation1Deg3(epsilon)
                     sketch.draw(sketch_size, probability_vector1, probability_vector2, color, label, prng.randint(0, 1000000))
-                for epsilon, color in [(0.001, 'blue'), (0.0005, 'deepskyblue'), (0.0001, 'turquoise')]:
-                    label = f'Average Approximation Epsilon={epsilon}'
-                    sketch = EntropyAverageApproximation(epsilon)
+                for epsilon, color in [(0.0003, 'green'), (0.0002, 'lawngreen'), (0.0001, 'olive')]:
+                    label = f'Poly3 eps={epsilon} with free var'
+                    sketch = EntropyPolyApproximation2Deg3(epsilon)
                     sketch.draw(sketch_size, probability_vector1, probability_vector2, color, label, prng.randint(0, 1000000))
 
                 plt.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
