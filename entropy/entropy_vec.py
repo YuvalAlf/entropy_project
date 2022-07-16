@@ -99,5 +99,9 @@ class EntropyVec(List[float]):
     def show_histogram(self, save_path: str) -> None:
         with gen_plot(save_path, x_label='Coordinates (Sorted)', y_label='Probability Value',
                       title='Probability Values Histogram'):
-            plt.plot(range(len(self)), sorted(self, reverse=True), color='red')
+            self.plot_histogram(color='red')
             plt.ylim(0, None)
+
+    def plot_histogram(self, **kwargs: str) -> None:
+        plt.plot(range(len(self)), sorted(self, reverse=True), **kwargs)
+        plt.ylim(0, None)

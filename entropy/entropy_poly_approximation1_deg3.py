@@ -9,6 +9,7 @@ import numpy as np
 from entropy.entropy_vec import EntropyVec
 from sketches.jl_sketch import JohnsonLindenstraussSketch
 from utils.functional_utils import map_list
+from utils.math_utils import inner_product
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH
 from utils.plotting_utils import gen_plot
