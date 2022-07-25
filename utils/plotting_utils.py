@@ -13,9 +13,12 @@ def gen_plot(save_path: str, width: float = 6, height: float = 6, x_label: str =
              title: str = '') -> ContextManager[None]:
     plt.figure(figsize=(width, height))
     yield
-    plt.title(title)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    if title != '':
+        plt.title(title)
+    if x_label != '':
+        plt.xlabel(x_label)
+    if y_label != '':
+        plt.ylabel(y_label)
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close('all')
 

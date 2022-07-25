@@ -8,8 +8,11 @@ from random import Random
 from statistics import mean
 from typing import List
 
+from matplotlib import pyplot as plt
+
 from sketches.projection_sketch import ProjectionSketch
 from utils.functional_utils import map_list
+from utils.itertools_utils import unzip
 from utils.math_utils import list_average
 
 
@@ -28,3 +31,9 @@ class CliffordEntropySketch(ProjectionSketch):
     def sketch_calculation(self, sketch1: List[float], sketch2: List[float]) -> float:
         average_sketch = list_average(sketch1, sketch2)
         return -math.log(mean(map_list(math.exp, average_sketch)))
+
+    def draw_communication(self, vector1: List[float], vector2: List[float], color: str, label: str, **kwargs: str) -> None:
+        xs, ys = unzip(list(self.sketch_approximations(vector1, vector2))[10:])
+        communications = [x * 2 for x in xs]
+        plt.plot(communications, ys, color=color, label=label, **kwargs)
+        return max(communications)

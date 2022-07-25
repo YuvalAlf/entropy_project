@@ -47,8 +47,8 @@ class EntropyPolyApproximation2Deg3:
             plt.plot(xs, approximated_ys, alpha=0.7, label='Poly', color='b')
             plt.legend()
 
-    def draw(self, sketch_size: int, probability_vector1: EntropyVec, probability_vector2: EntropyVec, color: str, label: str, seed: int) -> None:
-        jl_sketch = JohnsonLindenstraussSketch(sketch_size, len(probability_vector1), seed)
+    def draw(self, max_sketch_size: int, probability_vector1: EntropyVec, probability_vector2: EntropyVec, color: str, label: str, seed: int) -> None:
+        jl_sketch = JohnsonLindenstraussSketch(max_sketch_size, len(probability_vector1), seed)
         xs = []
         ys = []
         known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, untransmitted_coords = probability_vector1.send_bigger(probability_vector2, min_value=self.epsilon)
@@ -63,6 +63,26 @@ class EntropyPolyApproximation2Deg3:
             xs.append(sketch_size)
             ys.append(known_entropy + self.calc_approximation_on_vector(x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, len(untransmitted_coords), xy, xxy, xyy))
         plt.plot(xs, ys, color=color, label=label)
+
+    def draw_communication(self, max_sketch_size: int, probability_vector1: EntropyVec, probability_vector2: EntropyVec,
+                           color: str, label: str, seed: int) -> float:
+        jl_sketch = JohnsonLindenstraussSketch(max_sketch_size, len(probability_vector1), seed)
+        xs = []
+        ys = []
+        known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, untransmitted_coords = probability_vector1.send_bigger(probability_vector2, min_value=self.epsilon)
+        num_transmitted_coords = len(probability_vector1) - len(untransmitted_coords)
+        vector1 = [probability_vector1[coord] for coord in untransmitted_coords]
+        vector2 = [probability_vector2[coord] for coord in untransmitted_coords]
+        vector1_squared = [probability_vector1[coord]**2 for coord in untransmitted_coords]
+        vector2_squared = [probability_vector2[coord]**2 for coord in untransmitted_coords]
+        xy_sketch = jl_sketch.sketch_approximations(vector1, vector2)
+        xxy_sketch = jl_sketch.sketch_approximations(vector1_squared, vector2)
+        xyy_sketch = jl_sketch.sketch_approximations(vector1, vector2_squared)
+        for (sketch_size, xy), (_, xxy), (_, xyy) in zip(xy_sketch, xxy_sketch, xyy_sketch):
+            xs.append(num_transmitted_coords * 4 + sketch_size * 4 + 4)
+            ys.append(known_entropy + self.calc_approximation_on_vector(x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, len(untransmitted_coords), xy, xxy, xyy))
+        plt.plot(xs, ys, color=color, label=label, alpha=0.8)
+        return max(xs)
 
 
 if __name__ == '__main__':

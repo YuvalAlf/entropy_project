@@ -4,7 +4,7 @@ from random import Random
 import matplotlib.pyplot as plt
 
 from entropy.entropy_average_approximation import EntropyAverageApproximation
-from entropy.entropy_poly_approximation import EntropyPolyApproximation
+from entropy.entropy_poly_approximation import EntropyPolyApproximationDeg2
 from entropy.entropy_poly_approximation1_deg3 import EntropyPolyApproximation1Deg3
 from entropy.entropy_poly_approximation2 import EntropyPolyApproximation2
 from entropy.entropy_poly_approximation2_deg3 import EntropyPolyApproximation2Deg3

@@ -40,6 +40,6 @@ class ProjectionSketch(ABC):
         for sketch_size in range(20, len(sketch1)):
             yield sketch_size, self.sketch_calculation(sketch1[:sketch_size], sketch2[:sketch_size])
 
-    def draw(self, vector1: List[float], vector2: List[float], color: str, label: str, line_style: str = '-') -> None:
+    def draw(self, vector1: List[float], vector2: List[float], color: str, label: str, **kwargs: str) -> None:
         xs, ys = unzip(list(self.sketch_approximations(vector1, vector2))[10:])
-        plt.plot(xs, ys, color=color, label=label, linestyle=line_style)
+        plt.plot(xs, ys, color=color, label=label, **kwargs)

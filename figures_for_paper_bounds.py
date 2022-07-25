@@ -11,6 +11,7 @@ from entropy.entropy_vec import EntropyVec
 from entropy.newsgroups import NewsgroupThemeTokens
 from utils.data_frame_aggragator import DataFrameAggragator
 from utils.distributions import synthetic_distributions
+from utils.itertools_utils import enumerate1
 from utils.os_utils import join_create_dir
 from utils.plotting_utils import plot_horizontal, gen_plot
 import matplotlib as mpl
@@ -41,7 +42,8 @@ VEC_LENGTH_ENTRY = 'Vector Length'
 
 
 def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, distribution2_name: str,
-                           entropy_vec2: EntropyVec, results_dir_path: str, add_dist: bool = True) -> None:
+                           entropy_vec2: EntropyVec, results_dir_path: str, add_dist: bool = True,
+                           add_log: bool = False) -> None:
     assert len(entropy_vec1) == len(entropy_vec2)
     vec_length = len(entropy_vec1)
 
@@ -51,6 +53,9 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.sca(ax1)
     plt.xlabel('Coordinates (Sorted)\n(a)')
     plt.ylabel('Probability Value')
+    if add_log:
+        plt.yscale('log')
+        plt.ylabel('Probability Value [Log]')
     plt.title('Probability Values Histograms')
     text = ' Dist.' if add_dist else ''
     entropy_vec1.plot_histogram(color='blue', label=f'$Node_1$: {distribution1_name}{text}', alpha=0.8)
@@ -63,7 +68,8 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     df_aggragator = DataFrameAggragator()
     num_samples = 500
     step = max(1, int(vec_length / num_samples / 2))
-    for top_n in range(1, vec_length, step):
+    for i, top_n in enumerate1(range(1, vec_length, step)):
+        print(f'{i / num_samples * 50: .2f}%')
         (lower_bound1, communication1) = entropy_vec1.lower_bound(entropy_vec2, top_n)
         (upper_bound1, communication2) = entropy_vec1.upper_bound(entropy_vec2, top_n)
         (lower_bound2, communication3) = entropy_vec2.lower_bound(entropy_vec1, top_n)
@@ -79,19 +85,19 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     max_entropy_value = log(vec_length)
     x_lims = (0, max(vec_length, df[TOP_K_ENTRY].max()))
 
-    plot_horizontal(x_lims, max_entropy_value, color='black', linestyle='dashed', alpha=0.8, label='Maximum Entropy Value', clip_on=False)
-    plot_horizontal(x_lims, entropy_vec1.average_with(entropy_vec2).entropy(), color='slategray', linestyle='dashdot', alpha=0.8, label="Average Vector's Entropy", clip_on=False)
-    plot_horizontal(x_lims, entropy_vec1.entropy(), color='blue', linestyle='dotted', alpha=0.8, label=f'$Node_1$ Entropy ({distribution1_name})', clip_on=False)
-    plot_horizontal(x_lims, entropy_vec2.entropy(), color='green', linestyle='dotted', alpha=0.8, label=f'$Node_2$ Entropy ({distribution2_name})', clip_on=False)
+    plot_horizontal(x_lims, max_entropy_value, color='black', linestyle='dashed', alpha=0.8, label='Maximum Entropy Value')
+    plot_horizontal(x_lims, entropy_vec1.average_with(entropy_vec2).entropy(), color='slategray', linestyle='dashdot', alpha=0.8, label="Average Vector's Entropy")
+    plot_horizontal(x_lims, entropy_vec1.entropy(), color='blue', linestyle='dotted', alpha=0.8, label=f'$Node_1$ Entropy ({distribution1_name})')
+    plot_horizontal(x_lims, entropy_vec2.entropy(), color='green', linestyle='dotted', alpha=0.8, label=f'$Node_2$ Entropy ({distribution2_name})')
 
-    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='dodgerblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})', clip_on=False)
-    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name})', clip_on=False)
-    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})', clip_on=False)
-    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='darkgreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name}', clip_on=False)
+    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='dodgerblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})')
+    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name})')
+    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})')
+    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='darkgreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name})')
 
     plt.title('Algorithmic Bounds')
     plt.xlim((0, None))
-    plt.ylim((None, max_entropy_value + 0.2))
+    plt.ylim((None, max_entropy_value + 0.1))
     plt.legend(loc='upper left', bbox_to_anchor=(1.01, 1.01))
     plt.xlabel('Number of Top Values Transmitted\n(b)')
     plt.ylabel('Entropy')
@@ -101,11 +107,31 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plt.close('all')
 
 
-def bounds_synthetic_distributions(vector_length: int) -> None:
+def bounds_synthetic_distributions1(vector_length: int) -> None:
     distribution1_name = 'Uniform'
     entropy_vec1 = EntropyVec(np.random.uniform(low=0, high=1, size=vector_length)).normalize()
     distribution2_name = 'Beta'
     entropy_vec2 = EntropyVec(np.random.beta(a=0.2, b=100, size=vector_length)).normalize()
+
+    result_path = join_create_dir('results', 'for_paper', 'synthetic1')
+    run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path)
+
+
+def bounds_synthetic_distributions2(vector_length: int) -> None:
+    distribution1_name = 'Uniform1'
+    entropy_vec1 = EntropyVec(np.random.uniform(low=0.0, high=1, size=vector_length)).normalize()
+    distribution2_name = 'Uniform2'
+    entropy_vec2 = EntropyVec(np.random.uniform(low=0.5, high=1, size=vector_length)).normalize()
+
+    result_path = join_create_dir('results', 'for_paper', 'synthetic1')
+    run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path)
+
+
+def bounds_synthetic_distributions3(vector_length: int) -> None:
+    distribution1_name = 'Beta1'
+    entropy_vec1 = EntropyVec(np.random.beta(a=0.1, b=100, size=vector_length)).normalize()
+    distribution2_name = 'Beta2'
+    entropy_vec2 = EntropyVec(np.random.beta(a=0.02, b=100, size=vector_length)).normalize()
 
     result_path = join_create_dir('results', 'for_paper', 'synthetic1')
     run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path)
@@ -120,10 +146,12 @@ def bounds_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_token
     entropy_vec2 = newsgroups['rec.sport.hockey']
 
     result_path = join_create_dir('results', 'for_paper', 'newsgroups1')
-    run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, add_dist=False)
+    run_entropy_simulation(distribution1_name, entropy_vec1, distribution2_name, entropy_vec2, result_path, add_dist=False, add_log=True)
     # main_entropy_simulation('bounds_newsgroups', newsgroups, newsgroups)
 
 
 if __name__ == '__main__':
-    bounds_synthetic_distributions(vector_length=50000)
-    bounds_newsgroups_distributions(num_newsgroups_in_each_theme=200, num_tokens=10000)
+    # bounds_synthetic_distributions1(vector_length=50000)
+    # bounds_synthetic_distributions2(vector_length=10000)
+    bounds_synthetic_distributions3(vector_length=5000)
+    # bounds_newsgroups_distributions(num_newsgroups_in_each_theme=200, num_tokens=10000)
