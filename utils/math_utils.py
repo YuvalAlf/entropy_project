@@ -18,6 +18,13 @@ def calc_entropy_on_average(x: float, y: float) -> float:
     return -average * math.log(average)
 
 
+def calc_entropy_on_average_multiple(*values: float) -> float:
+    average = sum(values) / len(values)
+    if average == 0:
+        return 0
+    return -average * math.log(average)
+
+
 def gen_matrix(gen_value: Callable[[], float], rows: int, cols: int) -> ndarray:
     return np.array([[gen_value() for col in range(cols)] for row in range(rows)])
 

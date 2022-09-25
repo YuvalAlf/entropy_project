@@ -78,8 +78,8 @@ def bounds_synthetic_distributions_danny(vec_length: int) -> None:
     plot_horizontal(x_lims, entropy_vec2.entropy(), color='green', linestyle='dotted', alpha=0.8, label=f'$Node_2$ Entropy ({distribution2_name})')
 
     plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='dodgerblue', alpha=0.8, label=f'$Node_1$ L. Bound ({distribution1_name})')
-    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ U. Bound ({distribution2_name})')
-    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ L. Bound ({distribution1_name})')
+    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ L. Bound ({distribution2_name})')
+    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ U. Bound ({distribution1_name})')
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='darkgreen', alpha=0.8, label=f'$Node_2$ U. Bound ({distribution2_name})')
 
     plt.title('Uniform Dist. vs Beta Dist.')
@@ -123,8 +123,8 @@ def bounds_synthetic_distributions_danny(vec_length: int) -> None:
     plot_horizontal(x_lims, entropy_vec2.entropy(), color='green', linestyle='dotted', alpha=0.8, label=f'$Node_2$ Entropy ({distribution2_name})')
 
     plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='dodgerblue', alpha=0.8, label=f'$Node_1$ L. Bound ({distribution1_name})')
-    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ U. Bound ({distribution2_name})')
-    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ L. Bound ({distribution1_name})')
+    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ L. Bound ({distribution2_name})')
+    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ U. Bound ({distribution1_name})')
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='darkgreen', alpha=0.8, label=f'$Node_2$ U. Bound ({distribution2_name})')
 
     plt.title('Two Beta Distributions')

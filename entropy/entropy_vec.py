@@ -9,7 +9,7 @@ from more_itertools import pairwise
 from utils.core_utils import fst, snd
 from utils.functional_utils import map_list
 from utils.itertools_utils import enumerate1
-from utils.math_utils import calc_entropy, list_average, calc_entropy_on_average
+from utils.math_utils import calc_entropy, list_average, calc_entropy_on_average, calc_entropy_on_average_multiple
 from utils.plotting_utils import gen_plot
 
 
@@ -24,6 +24,10 @@ class EntropyVec(List[float]):
 
     def average_with(self, other_vec: EntropyVec) -> EntropyVec:
         return EntropyVec(list_average(self, other_vec))
+
+    @staticmethod
+    def average_of(vectors: EntropyVec) -> EntropyVec:
+        return EntropyVec([sum(items) / len(items) for items in zip(*vectors)])
 
     def top_coordinates(self, top_n: int) -> List[int]:
         return map_list(fst, sorted(enumerate(self), key=snd, reverse=True))[:top_n]
@@ -61,6 +65,19 @@ class EntropyVec(List[float]):
         y_tripled_sum = sum(other_vec[coord]**3 for coord in untransmitted_coordinates)
 
         return known_entropy, x_sum, y_sum, x_squared_sum, y_squared_sum, x_tripled_sum, y_tripled_sum, untransmitted_coordinates
+
+    @staticmethod
+    def send_bigger_multiple(probability_vectors: List[EntropyVec], min_value: float):
+        top_coordinates = [vec.coordinates_bigger_than(min_value) for vec in probability_vectors]
+        transmitted_coordinates = set(chain(*top_coordinates))
+        untransmitted_coordinates = set(range(len(probability_vectors[0]))) - transmitted_coordinates
+
+        known_entropy = sum(calc_entropy_on_average_multiple(*[vec[coord] for vec in probability_vectors]) for coord in transmitted_coordinates)
+
+        sums = [sum(vec[coord] for coord in untransmitted_coordinates) for vec in probability_vectors]
+        sums_squared = [sum(vec[coord]**2 for coord in untransmitted_coordinates) for vec in probability_vectors]
+
+        return known_entropy, sums, sums_squared, untransmitted_coordinates
 
     def upper_bound(self, other_vec: EntropyVec, top_n: int) -> (float, int):
         other_known_vector, unknown_coordinates, _, total_remaining, communication = self.prepare_alg(other_vec, top_n)

@@ -1,14 +1,16 @@
 import math
 import os
 from dataclasses import dataclass
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from entropy.entropy_vec import EntropyVec
 from sketches.jl_sketch import JohnsonLindenstraussSketch
+from utils.combinatorics_utils import combinations_without_repetitions
 from utils.functional_utils import map_list
+from utils.math_utils import inner_product
 from utils.os_utils import join_create_dir
 from utils.paths_dir import RESULTS_DIR_PATH
 from utils.plotting_utils import gen_plot
@@ -24,6 +26,11 @@ class EntropyPolyApproximationDeg2:
     def calc_approximation_on_vector(self, x_sum: float, y_sum: float, x_squared_sum: float, y_squared_sum: float,
                                      length: int, inner_product_value: float) -> float:
         return self.epsilon/8.0 * length + ((13/12-math.log(self.epsilon)) / 2) * (x_sum + y_sum) - (5/4/self.epsilon / 4) * (x_squared_sum + y_squared_sum + 2 * inner_product_value)
+
+    def calc_approximation_on_vectors_multiple(self, sums: List[float], squared_sums: List[float],
+                                               sketches: List[List[float]], length: int) -> float:
+        inner_products_sums = sum(inner_product(sketch1, sketch2) / len(sketch1) for sketch1, sketch2 in combinations_without_repetitions(sketches))
+        return self.epsilon/8.0 * length + (13/12-math.log(self.epsilon)) * sum(sums) / len(sums) - (5/4/self.epsilon / (len(sums) ** 2)) * (sum(squared_sums) + 2 * inner_products_sums)
 
     def calc_real_value(self, x: float) -> float:
         if x == 0:
@@ -62,6 +69,14 @@ class EntropyPolyApproximationDeg2:
             x = sketch_size
             y = known_entropy + self.calc_approximation_on_vector(x_sum, y_sum, x_squared_sum, y_squared_sum, len(untransmitted_coords), inner_product_value)
             yield x, y
+
+    def sketch_approximations_multiple(self, sketch_size: int, probability_vectors: List[EntropyVec], seed: int) -> Iterable[Tuple[int, float]]:
+        jl_sketch = JohnsonLindenstraussSketch(sketch_size, len(probability_vectors[0]), seed)
+        known_entropy, sums, sums_squared, untransmitted_coords = EntropyVec.send_bigger_multiple(probability_vectors, min_value=self.epsilon)
+        rest_vectors = [[prob_vector[coord] for coord in untransmitted_coords] for prob_vector in probability_vectors]
+        for sketch_size, sketches in jl_sketch.sketch_approximations_multiple(rest_vectors):
+            approximated_entropy = known_entropy + self.calc_approximation_on_vectors_multiple(sums, sums_squared, sketches, len(untransmitted_coords))
+            yield sketch_size, approximated_entropy
 
     def draw_communication(self, max_sketch_size: int, probability_vector1: EntropyVec, probability_vector2: EntropyVec,
                            color: str, label: str, seed: int) -> float:

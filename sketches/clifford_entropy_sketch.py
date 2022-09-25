@@ -32,6 +32,10 @@ class CliffordEntropySketch(ProjectionSketch):
         average_sketch = list_average(sketch1, sketch2)
         return -math.log(mean(map_list(math.exp, average_sketch)))
 
+    def sketch_calculation_multiple(self, sketches: List[List[float]]) -> float:
+        average_sketch = [sum(values) / len(values) for values in zip(*sketches)]
+        return -math.log(mean(map_list(math.exp, average_sketch)))
+
     def draw_communication(self, vector1: List[float], vector2: List[float], color: str, label: str, **kwargs: str) -> None:
         xs, ys = unzip(list(self.sketch_approximations(vector1, vector2))[10:])
         communications = [x * 2 for x in xs]

@@ -91,8 +91,8 @@ def run_entropy_simulation(distribution1_name: str, entropy_vec1: EntropyVec, di
     plot_horizontal(x_lims, entropy_vec2.entropy(), color='green', linestyle='dotted', alpha=0.8, label=f'$Node_2$ Entropy ({distribution2_name})')
 
     plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_1_ENTRY], color='dodgerblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})')
-    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name})')
-    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ Lower Bound ({distribution1_name})')
+    plt.plot(df[TOP_K_ENTRY], df[LOWER_BOUND_VEC_2_ENTRY], color='lawngreen', alpha=0.8, label=f'$Node_2$ Lower Bound ({distribution2_name})')
+    plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_1_ENTRY], color='darkblue', alpha=0.8, label=f'$Node_1$ Upper Bound ({distribution1_name})')
     plt.plot(df[TOP_K_ENTRY], df[UPPER_BOUND_VEC_2_ENTRY], color='darkgreen', alpha=0.8, label=f'$Node_2$ Upper Bound ({distribution2_name})')
 
     plt.title('Algorithmic Bounds')
@@ -151,7 +151,7 @@ def bounds_newsgroups_distributions(num_newsgroups_in_each_theme: int, num_token
 
 
 if __name__ == '__main__':
-    # bounds_synthetic_distributions1(vector_length=50000)
     # bounds_synthetic_distributions2(vector_length=10000)
-    bounds_synthetic_distributions3(vector_length=5000)
+    # bounds_synthetic_distributions3(vector_length=5000)
     # bounds_newsgroups_distributions(num_newsgroups_in_each_theme=200, num_tokens=10000)
+    bounds_synthetic_distributions1(vector_length=50000)
